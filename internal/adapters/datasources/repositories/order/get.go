@@ -13,18 +13,20 @@ import (
 // GetByID retrieves an order by its ID
 func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, created_at, updated_at
+		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
 		FROM orders
 		WHERE id = $1
 	`
 
 	var order domain.Order
+	var dataJSON []byte
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&order.ID,
 		&order.ProfileID,
 		&order.UserID,
 		&order.Status,
 		&order.ETA,
+		&dataJSON,
 		&order.CreatedAt,
 		&order.UpdatedAt,
 	)
@@ -36,13 +38,19 @@ func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, app
 		return nil, apperrors.NewApplicationError(mappings.InternalServerError, err)
 	}
 
+	if dataJSON != nil {
+		if err := order.SetDataFromJSON(dataJSON); err != nil {
+			return nil, apperrors.NewApplicationError(mappings.InternalServerError, err)
+		}
+	}
+
 	return &order, nil
 }
 
 // GetAll retrieves all orders
 func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, created_at, updated_at
+		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
 		FROM orders
 		ORDER BY created_at DESC
 	`
@@ -56,17 +64,22 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 	var orders []*domain.Order
 	for rows.Next() {
 		var order domain.Order
+		var dataJSON []byte
 		err := rows.Scan(
 			&order.ID,
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
 			&order.ETA,
+			&dataJSON,
 			&order.CreatedAt,
 			&order.UpdatedAt,
 		)
 		if err != nil {
 			return nil, apperrors.NewApplicationError(mappings.InternalServerError, err)
+		}
+		if dataJSON != nil {
+			_ = order.SetDataFromJSON(dataJSON)
 		}
 		orders = append(orders, &order)
 	}
@@ -81,7 +94,7 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 // GetByUserID retrieves all orders for a specific user
 func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, created_at, updated_at
+		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
 		FROM orders
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -96,17 +109,22 @@ func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.
 	var orders []*domain.Order
 	for rows.Next() {
 		var order domain.Order
+		var dataJSON []byte
 		err := rows.Scan(
 			&order.ID,
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
 			&order.ETA,
+			&dataJSON,
 			&order.CreatedAt,
 			&order.UpdatedAt,
 		)
 		if err != nil {
 			return nil, apperrors.NewApplicationError(mappings.InternalServerError, err)
+		}
+		if dataJSON != nil {
+			_ = order.SetDataFromJSON(dataJSON)
 		}
 		orders = append(orders, &order)
 	}

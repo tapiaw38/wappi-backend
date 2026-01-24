@@ -88,6 +88,14 @@ func RunMigrations(db *sql.DB) error {
 		END IF;
 	END $$;
 
+	-- Add data column to orders (JSONB for order items)
+	DO $$
+	BEGIN
+		IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'data') THEN
+			ALTER TABLE orders ADD COLUMN data JSONB;
+		END IF;
+	END $$;
+
 	CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 	CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
 	CREATE INDEX IF NOT EXISTS idx_orders_profile_id ON orders(profile_id);
