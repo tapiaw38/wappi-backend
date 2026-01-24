@@ -1,0 +1,59 @@
+# Binarios compilados
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Archivos de test
+*.test
+
+# Archivos de cobertura
+*.coverprofile
+coverage.html
+coverage.out
+
+# Directorio de dependencias
+vendor/
+
+# Archivos de Go workspace
+go.work
+go.work.sum
+
+# Archivos temporales
+*.tmp
+*.temp
+*.log
+
+# Archivos del IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos de configuración local
+.env
+.env.local
+*.local
+
+# Archivos de build
+dist/
+build/
+bin/
+
+# Archivos de sistema operativo
+Thumbs.db
+.DS_Store
+
+# Archivos de Docker
+.dockerignore
+
+# Archivos de configuración de base de datos local
+*.db
+*.sqlite
+*.sqlite3
+
