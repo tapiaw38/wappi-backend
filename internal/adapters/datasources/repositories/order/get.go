@@ -13,7 +13,7 @@ import (
 // GetByID retrieves an order by its ID
 func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		WHERE id = $1
 	`
@@ -25,6 +25,7 @@ func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, app
 		&order.ProfileID,
 		&order.UserID,
 		&order.Status,
+		&order.StatusMessage,
 		&order.ETA,
 		&dataJSON,
 		&order.CreatedAt,
@@ -50,7 +51,7 @@ func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, app
 // GetAll retrieves all orders
 func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		ORDER BY created_at DESC
 	`
@@ -70,6 +71,7 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
+			&order.StatusMessage,
 			&order.ETA,
 			&dataJSON,
 			&order.CreatedAt,
@@ -94,7 +96,7 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 // GetByUserID retrieves all orders for a specific user
 func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -115,6 +117,7 @@ func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
+			&order.StatusMessage,
 			&order.ETA,
 			&dataJSON,
 			&order.CreatedAt,

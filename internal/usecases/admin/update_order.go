@@ -13,8 +13,9 @@ import (
 
 // UpdateOrderInput represents the input for updating an order
 type UpdateOrderInput struct {
-	Status *string `json:"status,omitempty"`
-	ETA    *string `json:"eta,omitempty"`
+	Status        *string `json:"status,omitempty"`
+	StatusMessage *string `json:"status_message,omitempty"`
+	ETA           *string `json:"eta,omitempty"`
 }
 
 // UpdateOrderUsecase defines the interface for updating orders
@@ -52,6 +53,10 @@ func (u *updateOrderUsecase) Execute(ctx context.Context, id string, input Updat
 		order.Status = domain.OrderStatus(*input.Status)
 	}
 
+	if input.StatusMessage != nil {
+		order.StatusMessage = input.StatusMessage
+	}
+
 	if input.ETA != nil {
 		order.ETA = *input.ETA
 	}
@@ -68,14 +73,15 @@ func (u *updateOrderUsecase) Execute(ctx context.Context, id string, input Updat
 	}
 
 	return &OrderOutput{
-		ID:          updatedOrder.ID,
-		ProfileID:   updatedOrder.ProfileID,
-		UserID:      updatedOrder.UserID,
-		Status:      string(updatedOrder.Status),
-		StatusIndex: updatedOrder.StatusIndex(),
-		ETA:         updatedOrder.ETA,
-		CreatedAt:   updatedOrder.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   updatedOrder.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-		AllStatuses: allStatuses,
+		ID:            updatedOrder.ID,
+		ProfileID:     updatedOrder.ProfileID,
+		UserID:        updatedOrder.UserID,
+		Status:        string(updatedOrder.Status),
+		StatusMessage:  updatedOrder.StatusMessage,
+		StatusIndex:    updatedOrder.StatusIndex(),
+		ETA:            updatedOrder.ETA,
+		CreatedAt:      updatedOrder.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:      updatedOrder.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		AllStatuses:    allStatuses,
 	}, nil
 }
