@@ -13,6 +13,7 @@ type Usecases struct {
 	Claim          ClaimUsecase
 	Get            GetUsecase
 	UpdateStatus   UpdateStatusUsecase
+	ListMyOrders   ListMyOrdersUsecase
 }
 
 // NewUsecases creates all order use cases
@@ -23,5 +24,6 @@ func NewUsecases(repo orderRepo.Repository, tokenRepo ordertokenRepo.Repository,
 		Claim:          NewClaimUsecase(repo, tokenRepo, profileRepo),
 		Get:            NewGetUsecase(repo),
 		UpdateStatus:   NewUpdateStatusUsecase(repo),
+		ListMyOrders:   NewListMyOrdersUsecase(repo),
 	}
 }

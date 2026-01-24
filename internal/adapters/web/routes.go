@@ -32,6 +32,8 @@ func RegisterRoutes(app *gin.Engine, orderUsecases *orderUsecase.Usecases, profi
 		ordersAuth.PATCH("/:id/status", orderHandler.NewUpdateStatusHandler(orderUsecases.UpdateStatus))
 		// Claim order via token - requires auth to identify user
 		ordersAuth.POST("/claim/:token", orderHandler.NewClaimHandler(orderUsecases.Claim))
+		// List current user's orders
+		ordersAuth.GET("/my", orderHandler.NewListMyHandler(orderUsecases.ListMyOrders))
 	}
 
 	// Public profile routes (token-based access)
