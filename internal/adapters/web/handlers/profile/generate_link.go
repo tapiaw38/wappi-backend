@@ -23,11 +23,9 @@ func NewGenerateLinkHandler(usecase profileUsecase.GenerateLinkUsecase) gin.Hand
 			return
 		}
 
-		input := profileUsecase.GenerateLinkInput{
+		output, appErr := usecase.Execute(c, profileUsecase.GenerateLinkInput{
 			UserID: userID,
-		}
-
-		output, appErr := usecase.Execute(c.Request.Context(), input)
+		})
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

@@ -1,9 +1,7 @@
 package order
 
 import (
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
-	ordertokenRepo "wappi/internal/adapters/datasources/repositories/ordertoken"
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 )
 
 // Usecases aggregates all order-related use cases
@@ -17,13 +15,13 @@ type Usecases struct {
 }
 
 // NewUsecases creates all order use cases
-func NewUsecases(repo orderRepo.Repository, tokenRepo ordertokenRepo.Repository, profileRepo profileRepo.Repository) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory) *Usecases {
 	return &Usecases{
-		Create:         NewCreateUsecase(repo),
-		CreateWithLink: NewCreateWithLinkUsecase(repo, tokenRepo),
-		Claim:          NewClaimUsecase(repo, tokenRepo, profileRepo),
-		Get:            NewGetUsecase(repo),
-		UpdateStatus:   NewUpdateStatusUsecase(repo),
-		ListMyOrders:   NewListMyOrdersUsecase(repo),
+		Create:         NewCreateUsecase(contextFactory),
+		CreateWithLink: NewCreateWithLinkUsecase(contextFactory),
+		Claim:          NewClaimUsecase(contextFactory),
+		Get:            NewGetUsecase(contextFactory),
+		UpdateStatus:   NewUpdateStatusUsecase(contextFactory),
+		ListMyOrders:   NewListMyOrdersUsecase(contextFactory),
 	}
 }

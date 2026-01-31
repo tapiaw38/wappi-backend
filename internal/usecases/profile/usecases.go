@@ -1,7 +1,7 @@
 package profile
 
 import (
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 )
 
 // Usecases aggregates all profile-related use cases
@@ -15,13 +15,13 @@ type Usecases struct {
 }
 
 // NewUsecases creates all profile use cases
-func NewUsecases(repo profileRepo.Repository) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory) *Usecases {
 	return &Usecases{
-		GenerateLink:    NewGenerateLinkUsecase(repo),
-		ValidateToken:   NewValidateTokenUsecase(repo),
-		CompleteProfile: NewCompleteProfileUsecase(repo),
-		Get:             NewGetProfileUsecase(repo),
-		Update:          NewUpdateProfileUsecase(repo),
-		CheckCompleted:  NewCheckCompletedUsecase(repo),
+		GenerateLink:    NewGenerateLinkUsecase(contextFactory),
+		ValidateToken:   NewValidateTokenUsecase(contextFactory),
+		CompleteProfile: NewCompleteProfileUsecase(contextFactory),
+		Get:             NewGetProfileUsecase(contextFactory),
+		Update:          NewUpdateProfileUsecase(contextFactory),
+		CheckCompleted:  NewCheckCompletedUsecase(contextFactory),
 	}
 }

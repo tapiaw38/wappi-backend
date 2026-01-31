@@ -4,21 +4,38 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"wappi/internal/domain"
+	apperrors "wappi/internal/platform/errors"
+	"wappi/internal/platform/errors/mappings"
 	adminUsecase "wappi/internal/usecases/admin"
 )
+
+type UpdateOrderInput struct {
+	Status        *string           `json:"status,omitempty"`
+	StatusMessage *string           `json:"status_message,omitempty"`
+	ETA           *string           `json:"eta,omitempty"`
+	Data          *domain.OrderData `json:"data,omitempty"`
+}
 
 // NewUpdateOrderHandler creates a handler for updating an order
 func NewUpdateOrderHandler(usecase adminUsecase.UpdateOrderUsecase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		var input adminUsecase.UpdateOrderInput
+		var input UpdateOrderInput
 		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			appErr := apperrors.NewApplicationError(mappings.RequestBodyParsingError, err)
+			appErr.Log(c)
+			c.JSON(appErr.StatusCode(), appErr)
 			return
 		}
 
-		output, appErr := usecase.Execute(c.Request.Context(), id, input)
+		output, appErr := usecase.Execute(c, id, adminUsecase.UpdateOrderInput{
+			Status:        input.Status,
+			StatusMessage: input.StatusMessage,
+			ETA:           input.ETA,
+			Data:          input.Data,
+		})
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

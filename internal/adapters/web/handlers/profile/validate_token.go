@@ -12,7 +12,7 @@ func NewValidateTokenHandler(usecase profileUsecase.ValidateTokenUsecase) gin.Ha
 	return func(c *gin.Context) {
 		token := c.Param("token")
 
-		output, appErr := usecase.Execute(c.Request.Context(), token)
+		output, appErr := usecase.Execute(c, token)
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

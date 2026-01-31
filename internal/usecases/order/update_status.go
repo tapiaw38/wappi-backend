@@ -3,8 +3,8 @@ package order
 import (
 	"context"
 
-	"wappi/internal/adapters/datasources/repositories/order"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 
@@ -18,12 +18,7 @@ type UpdateStatusInput struct {
 
 // UpdateStatusOutput represents the output after updating order status
 type UpdateStatusOutput struct {
-	ID          string `json:"id"`
-	Status      string `json:"status"`
-	StatusIndex int    `json:"status_index"`
-	ETA         string `json:"eta"`
-	CreatedAt   string `json:"created_at"`
-	UpdatedAt   string `json:"updated_at"`
+	Data OrderOutputData `json:"data"`
 }
 
 // UpdateStatusUsecase defines the interface for updating order status
@@ -32,16 +27,18 @@ type UpdateStatusUsecase interface {
 }
 
 type updateStatusUsecase struct {
-	repo order.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewUpdateStatusUsecase creates a new instance of UpdateStatusUsecase
-func NewUpdateStatusUsecase(repo order.Repository) UpdateStatusUsecase {
-	return &updateStatusUsecase{repo: repo}
+func NewUpdateStatusUsecase(contextFactory appcontext.Factory) UpdateStatusUsecase {
+	return &updateStatusUsecase{contextFactory: contextFactory}
 }
 
 // Execute updates the status of an order
 func (u *updateStatusUsecase) Execute(ctx context.Context, id string, input UpdateStatusInput) (*UpdateStatusOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, apperrors.NewApplicationError(mappings.OrderInvalidIDError, err)
 	}
@@ -50,17 +47,12 @@ func (u *updateStatusUsecase) Execute(ctx context.Context, id string, input Upda
 		return nil, apperrors.NewApplicationError(mappings.OrderInvalidStatusError, nil)
 	}
 
-	updated, err := u.repo.UpdateStatus(ctx, id, domain.OrderStatus(input.Status))
+	updated, err := app.Repositories.Order.UpdateStatus(ctx, id, domain.OrderStatus(input.Status))
 	if err != nil {
 		return nil, err
 	}
 
 	return &UpdateStatusOutput{
-		ID:          updated.ID,
-		Status:      string(updated.Status),
-		StatusIndex: updated.StatusIndex(),
-		ETA:         updated.ETA,
-		CreatedAt:   updated.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   updated.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Data: toOrderOutputData(updated, false),
 	}, nil
 }

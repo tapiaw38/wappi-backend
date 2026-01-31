@@ -1,8 +1,7 @@
 package admin
 
 import (
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 )
 
 // Usecases aggregates all admin-related use cases
@@ -13,10 +12,10 @@ type Usecases struct {
 }
 
 // NewUsecases creates all admin use cases
-func NewUsecases(profileRepository profileRepo.Repository, orderRepository orderRepo.Repository) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory) *Usecases {
 	return &Usecases{
-		ListProfiles: NewListProfilesUsecase(profileRepository),
-		ListOrders:   NewListOrdersUsecase(orderRepository),
-		UpdateOrder:  NewUpdateOrderUsecase(orderRepository),
+		ListProfiles: NewListProfilesUsecase(contextFactory),
+		ListOrders:   NewListOrdersUsecase(contextFactory),
+		UpdateOrder:  NewUpdateOrderUsecase(contextFactory),
 	}
 }

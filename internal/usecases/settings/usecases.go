@@ -4,24 +4,24 @@ import (
 	"context"
 	"math"
 
-	settingsRepo "wappi/internal/adapters/datasources/repositories/settings"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
 
 // Usecases contains all settings-related use cases
 type Usecases struct {
-	Get                   GetUsecase
-	Update                UpdateUsecase
-	CalculateDeliveryFee  CalculateDeliveryFeeUsecase
+	Get                  GetUsecase
+	Update               UpdateUsecase
+	CalculateDeliveryFee CalculateDeliveryFeeUsecase
 }
 
 // NewUsecases creates all settings usecases
-func NewUsecases(repo settingsRepo.Repository) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory) *Usecases {
 	return &Usecases{
-		Get:                   NewGetUsecase(repo),
-		Update:                NewUpdateUsecase(repo),
-		CalculateDeliveryFee:  NewCalculateDeliveryFeeUsecase(repo),
+		Get:                  NewGetUsecase(contextFactory),
+		Update:               NewUpdateUsecase(contextFactory),
+		CalculateDeliveryFee: NewCalculateDeliveryFeeUsecase(contextFactory),
 	}
 }
 
@@ -36,15 +36,17 @@ type GetUsecase interface {
 }
 
 type getUsecase struct {
-	repo settingsRepo.Repository
+	contextFactory appcontext.Factory
 }
 
-func NewGetUsecase(repo settingsRepo.Repository) GetUsecase {
-	return &getUsecase{repo: repo}
+func NewGetUsecase(contextFactory appcontext.Factory) GetUsecase {
+	return &getUsecase{contextFactory: contextFactory}
 }
 
 func (u *getUsecase) Execute(ctx context.Context) (*GetOutput, apperrors.ApplicationError) {
-	settings, err := u.repo.Get(ctx)
+	app := u.contextFactory()
+
+	settings, err := app.Repositories.Settings.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -75,16 +77,18 @@ type UpdateUsecase interface {
 }
 
 type updateUsecase struct {
-	repo settingsRepo.Repository
+	contextFactory appcontext.Factory
 }
 
-func NewUpdateUsecase(repo settingsRepo.Repository) UpdateUsecase {
-	return &updateUsecase{repo: repo}
+func NewUpdateUsecase(contextFactory appcontext.Factory) UpdateUsecase {
+	return &updateUsecase{contextFactory: contextFactory}
 }
 
 func (u *updateUsecase) Execute(ctx context.Context, input UpdateInput) (*UpdateOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Get current settings
-	current, err := u.repo.Get(ctx)
+	current, err := app.Repositories.Settings.Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +126,7 @@ func (u *updateUsecase) Execute(ctx context.Context, input UpdateInput) (*Update
 	}
 
 	// Save
-	updated, err := u.repo.Upsert(ctx, current)
+	updated, err := app.Repositories.Settings.Upsert(ctx, current)
 	if err != nil {
 		return nil, err
 	}
@@ -142,13 +146,13 @@ type CalculateDeliveryFeeInput struct {
 }
 
 type CalculateDeliveryFeeOutput struct {
-	DistanceKm   float64 `json:"distance_km"`
-	TotalWeightG int     `json:"total_weight_g"`
+	DistanceKm    float64 `json:"distance_km"`
+	TotalWeightG  int     `json:"total_weight_g"`
 	TotalWeightKg float64 `json:"total_weight_kg"`
-	BasePrice    float64 `json:"base_price"`
+	BasePrice     float64 `json:"base_price"`
 	DistancePrice float64 `json:"distance_price"`
-	WeightPrice  float64 `json:"weight_price"`
-	TotalPrice   float64 `json:"total_price"`
+	WeightPrice   float64 `json:"weight_price"`
+	TotalPrice    float64 `json:"total_price"`
 }
 
 type CalculateDeliveryFeeUsecase interface {
@@ -156,15 +160,17 @@ type CalculateDeliveryFeeUsecase interface {
 }
 
 type calculateDeliveryFeeUsecase struct {
-	repo settingsRepo.Repository
+	contextFactory appcontext.Factory
 }
 
-func NewCalculateDeliveryFeeUsecase(repo settingsRepo.Repository) CalculateDeliveryFeeUsecase {
-	return &calculateDeliveryFeeUsecase{repo: repo}
+func NewCalculateDeliveryFeeUsecase(contextFactory appcontext.Factory) CalculateDeliveryFeeUsecase {
+	return &calculateDeliveryFeeUsecase{contextFactory: contextFactory}
 }
 
 func (u *calculateDeliveryFeeUsecase) Execute(ctx context.Context, input CalculateDeliveryFeeInput) (*CalculateDeliveryFeeOutput, apperrors.ApplicationError) {
-	settings, err := u.repo.Get(ctx)
+	app := u.contextFactory()
+
+	settings, err := app.Repositories.Settings.Get(ctx)
 	if err != nil {
 		return nil, err
 	}

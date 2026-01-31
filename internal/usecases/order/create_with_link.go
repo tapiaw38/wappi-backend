@@ -4,9 +4,8 @@ import (
 	"context"
 	"time"
 
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
-	ordertokenRepo "wappi/internal/adapters/datasources/repositories/ordertoken"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
 
@@ -47,20 +46,18 @@ type CreateWithLinkUsecase interface {
 }
 
 type createWithLinkUsecase struct {
-	orderRepo      orderRepo.Repository
-	orderTokenRepo ordertokenRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewCreateWithLinkUsecase creates a new instance of CreateWithLinkUsecase
-func NewCreateWithLinkUsecase(orderRepo orderRepo.Repository, orderTokenRepo ordertokenRepo.Repository) CreateWithLinkUsecase {
-	return &createWithLinkUsecase{
-		orderRepo:      orderRepo,
-		orderTokenRepo: orderTokenRepo,
-	}
+func NewCreateWithLinkUsecase(contextFactory appcontext.Factory) CreateWithLinkUsecase {
+	return &createWithLinkUsecase{contextFactory: contextFactory}
 }
 
 // Execute creates a new order and generates a claim link
 func (u *createWithLinkUsecase) Execute(ctx context.Context, input CreateWithLinkInput, baseURL string) (*CreateWithLinkOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Create order without user assignment
 	newOrder := &domain.Order{
 		ETA: input.ETA,
@@ -80,7 +77,7 @@ func (u *createWithLinkUsecase) Execute(ctx context.Context, input CreateWithLin
 		newOrder.Data = &domain.OrderData{Items: items}
 	}
 
-	created, err := u.orderRepo.Create(ctx, newOrder)
+	created, err := app.Repositories.Order.Create(ctx, newOrder)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +90,7 @@ func (u *createWithLinkUsecase) Execute(ctx context.Context, input CreateWithLin
 		ExpiresAt:   expiresAt,
 	}
 
-	tokenCreated, err := u.orderTokenRepo.Create(ctx, orderToken)
+	tokenCreated, err := app.Repositories.OrderToken.Create(ctx, orderToken)
 	if err != nil {
 		return nil, err
 	}

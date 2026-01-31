@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"wappi/internal/adapters/web/middlewares"
+	apperrors "wappi/internal/platform/errors"
+	"wappi/internal/platform/errors/mappings"
 	orderUsecase "wappi/internal/usecases/order"
 )
 
@@ -14,11 +16,13 @@ func NewListMyHandler(usecase orderUsecase.ListMyOrdersUsecase) gin.HandlerFunc 
 		// Get user ID from context (set by auth middleware)
 		userID, exists := middlewares.GetUserIDFromContext(c)
 		if !exists {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found in context"})
+			appErr := apperrors.NewApplicationError(mappings.UnauthorizedError, nil)
+			appErr.Log(c)
+			c.JSON(appErr.StatusCode(), appErr)
 			return
 		}
 
-		output, appErr := usecase.Execute(c.Request.Context(), userID)
+		output, appErr := usecase.Execute(c, userID)
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

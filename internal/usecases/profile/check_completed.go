@@ -3,7 +3,7 @@ package profile
 import (
 	"context"
 
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
 
@@ -20,18 +20,20 @@ type CheckCompletedUsecase interface {
 }
 
 type checkCompletedUsecase struct {
-	repo profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewCheckCompletedUsecase creates a new instance of CheckCompletedUsecase
-func NewCheckCompletedUsecase(repo profileRepo.Repository) CheckCompletedUsecase {
-	return &checkCompletedUsecase{repo: repo}
+func NewCheckCompletedUsecase(contextFactory appcontext.Factory) CheckCompletedUsecase {
+	return &checkCompletedUsecase{contextFactory: contextFactory}
 }
 
 // Execute checks if the user's profile is completed
 func (u *checkCompletedUsecase) Execute(ctx context.Context, userID string) (*CheckCompletedOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Try to get profile by user ID
-	profile, err := u.repo.GetByUserID(ctx, userID)
+	profile, err := app.Repositories.Profile.GetByUserID(ctx, userID)
 	if err != nil {
 		// Profile doesn't exist - not completed
 		return &CheckCompletedOutput{

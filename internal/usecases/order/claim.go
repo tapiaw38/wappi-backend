@@ -5,9 +5,7 @@ import (
 	"errors"
 	"time"
 
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
-	ordertokenRepo "wappi/internal/adapters/datasources/repositories/ordertoken"
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 )
@@ -34,24 +32,20 @@ type ClaimUsecase interface {
 }
 
 type claimUsecase struct {
-	orderRepo      orderRepo.Repository
-	orderTokenRepo ordertokenRepo.Repository
-	profileRepo    profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewClaimUsecase creates a new instance of ClaimUsecase
-func NewClaimUsecase(orderRepo orderRepo.Repository, orderTokenRepo ordertokenRepo.Repository, profileRepo profileRepo.Repository) ClaimUsecase {
-	return &claimUsecase{
-		orderRepo:      orderRepo,
-		orderTokenRepo: orderTokenRepo,
-		profileRepo:    profileRepo,
-	}
+func NewClaimUsecase(contextFactory appcontext.Factory) ClaimUsecase {
+	return &claimUsecase{contextFactory: contextFactory}
 }
 
 // Execute claims an order for a user
 func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Get the order token
-	orderToken, err := u.orderTokenRepo.GetByToken(ctx, input.Token)
+	orderToken, err := app.Repositories.OrderToken.GetByToken(ctx, input.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +61,7 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 	}
 
 	// Get the order to verify it's not already assigned
-	order, err := u.orderRepo.GetByID(ctx, orderToken.OrderID)
+	order, err := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
 	if err != nil {
 		return nil, err
 	}
@@ -78,24 +72,24 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 	}
 
 	// Assign user to order
-	if assignErr := u.orderRepo.AssignUser(ctx, orderToken.OrderID, input.UserID); assignErr != nil {
+	if assignErr := app.Repositories.Order.AssignUser(ctx, orderToken.OrderID, input.UserID); assignErr != nil {
 		return nil, assignErr
 	}
 
 	// Try to get user's profile and assign it to the order
-	profile, _ := u.profileRepo.GetByUserID(ctx, input.UserID)
+	profile, _ := app.Repositories.Profile.GetByUserID(ctx, input.UserID)
 	if profile != nil {
 		// User has a profile, assign it to the order
-		_ = u.orderRepo.AssignProfile(ctx, orderToken.OrderID, profile.ID)
+		_ = app.Repositories.Order.AssignProfile(ctx, orderToken.OrderID, profile.ID)
 	}
 
 	// Mark token as claimed
-	if markErr := u.orderTokenRepo.MarkAsClaimed(ctx, input.Token, input.UserID); markErr != nil {
+	if markErr := app.Repositories.OrderToken.MarkAsClaimed(ctx, input.Token, input.UserID); markErr != nil {
 		return nil, markErr
 	}
 
 	// Get the updated order
-	updatedOrder, err := u.orderRepo.GetByID(ctx, orderToken.OrderID)
+	updatedOrder, err := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
 	if err != nil {
 		return nil, err
 	}

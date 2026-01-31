@@ -3,7 +3,7 @@ package profile
 import (
 	"context"
 
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 
@@ -12,12 +12,7 @@ import (
 
 // GetProfileOutput represents the output for getting a profile
 type GetProfileOutput struct {
-	ID          string          `json:"id"`
-	UserID      string          `json:"user_id"`
-	PhoneNumber string          `json:"phone_number"`
-	Location    *LocationOutput `json:"location,omitempty"`
-	CreatedAt   string          `json:"created_at"`
-	UpdatedAt   string          `json:"updated_at"`
+	Data ProfileOutputData `json:"data"`
 }
 
 // GetProfileUsecase defines the interface for getting profiles
@@ -26,45 +21,51 @@ type GetProfileUsecase interface {
 }
 
 type getProfileUsecase struct {
-	repo profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewGetProfileUsecase creates a new instance of GetProfileUsecase
-func NewGetProfileUsecase(repo profileRepo.Repository) GetProfileUsecase {
-	return &getProfileUsecase{repo: repo}
+func NewGetProfileUsecase(contextFactory appcontext.Factory) GetProfileUsecase {
+	return &getProfileUsecase{contextFactory: contextFactory}
 }
 
 // Execute retrieves a profile by ID
 func (u *getProfileUsecase) Execute(ctx context.Context, id string) (*GetProfileOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, apperrors.NewApplicationError(mappings.InvalidUserIDError, err)
 	}
 
-	profile, err := u.repo.GetByID(ctx, id)
+	profile, err := app.Repositories.Profile.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	output := &GetProfileOutput{
-		ID:          profile.ID,
-		UserID:      profile.UserID,
-		PhoneNumber: profile.PhoneNumber,
-		CreatedAt:   profile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:   profile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-	}
-
 	// Get location if exists
+	var location *LocationOutput
 	if profile.LocationID != nil {
-		location, locErr := u.repo.GetLocationByID(ctx, *profile.LocationID)
-		if locErr == nil && location != nil {
-			output.Location = &LocationOutput{
-				ID:        location.ID,
-				Longitude: location.Longitude,
-				Latitude:  location.Latitude,
-				Address:   location.Address,
+		loc, locErr := app.Repositories.Profile.GetLocationByID(ctx, *profile.LocationID)
+		if locErr == nil && loc != nil {
+			location = &LocationOutput{
+				ID:        loc.ID,
+				Longitude: loc.Longitude,
+				Latitude:  loc.Latitude,
+				Address:   loc.Address,
 			}
 		}
 	}
 
-	return output, nil
+	output := ProfileOutputData{
+		ID:          profile.ID,
+		UserID:      profile.UserID,
+		PhoneNumber: profile.PhoneNumber,
+		Location:    location,
+		CreatedAt:   profile.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:   profile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	}
+
+	return &GetProfileOutput{
+		Data: output,
+	}, nil
 }

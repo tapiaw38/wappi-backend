@@ -12,7 +12,7 @@ func NewGetHandler(usecase profileUsecase.GetProfileUsecase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		output, appErr := usecase.Execute(c.Request.Context(), id)
+		output, appErr := usecase.Execute(c, id)
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

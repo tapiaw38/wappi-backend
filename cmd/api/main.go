@@ -3,18 +3,13 @@ package main
 import (
 	"log"
 
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
-	ordertokenRepo "wappi/internal/adapters/datasources/repositories/ordertoken"
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
-	settingsRepo "wappi/internal/adapters/datasources/repositories/settings"
+	"wappi/internal/adapters/datasources"
 	"wappi/internal/adapters/web"
 	"wappi/internal/adapters/web/middlewares"
+	"wappi/internal/platform/appcontext"
 	"wappi/internal/platform/config"
 	"wappi/internal/platform/database"
-	adminUsecase "wappi/internal/usecases/admin"
-	orderUsecase "wappi/internal/usecases/order"
-	profileUsecase "wappi/internal/usecases/profile"
-	settingsUsecase "wappi/internal/usecases/settings"
+	"wappi/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,17 +27,14 @@ func main() {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Initialize repositories
-	orderRepository := orderRepo.NewRepository(db)
-	orderTokenRepository := ordertokenRepo.NewRepository(db)
-	profileRepository := profileRepo.NewRepository(db)
-	settingsRepository := settingsRepo.NewRepository(db)
+	// Create datasources
+	ds := datasources.CreateDatasources(db)
+
+	// Create context factory for dependency injection
+	contextFactory := appcontext.NewFactory(ds, cfg)
 
 	// Initialize use cases
-	orderUsecases := orderUsecase.NewUsecases(orderRepository, orderTokenRepository, profileRepository)
-	profileUsecases := profileUsecase.NewUsecases(profileRepository)
-	adminUsecases := adminUsecase.NewUsecases(profileRepository, orderRepository)
-	settingsUsecases := settingsUsecase.NewUsecases(settingsRepository)
+	useCases := usecases.CreateUsecases(contextFactory)
 
 	// Setup Gin
 	gin.SetMode(cfg.GinMode)
@@ -52,7 +44,7 @@ func main() {
 	app.Use(middlewares.CORSMiddleware())
 
 	// Register routes
-	web.RegisterRoutes(app, orderUsecases, profileUsecases, adminUsecases, settingsUsecases, cfg.FrontendURL)
+	web.RegisterRoutes(app, useCases, cfg.FrontendURL)
 
 	// Health check endpoint
 	app.GET("/health", func(c *gin.Context) {

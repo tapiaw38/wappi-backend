@@ -3,8 +3,8 @@ package admin
 import (
 	"context"
 
-	orderRepo "wappi/internal/adapters/datasources/repositories/order"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 
@@ -25,23 +25,25 @@ type UpdateOrderUsecase interface {
 }
 
 type updateOrderUsecase struct {
-	repo orderRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewUpdateOrderUsecase creates a new instance of UpdateOrderUsecase
-func NewUpdateOrderUsecase(repo orderRepo.Repository) UpdateOrderUsecase {
-	return &updateOrderUsecase{repo: repo}
+func NewUpdateOrderUsecase(contextFactory appcontext.Factory) UpdateOrderUsecase {
+	return &updateOrderUsecase{contextFactory: contextFactory}
 }
 
 // Execute updates an order
 func (u *updateOrderUsecase) Execute(ctx context.Context, id string, input UpdateOrderInput) (*OrderOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Validate order ID
 	if _, err := uuid.Parse(id); err != nil {
 		return nil, apperrors.NewApplicationError(mappings.OrderInvalidIDError, err)
 	}
 
 	// Get existing order
-	order, err := u.repo.GetByID(ctx, id)
+	order, err := app.Repositories.Order.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -67,27 +69,11 @@ func (u *updateOrderUsecase) Execute(ctx context.Context, id string, input Updat
 	}
 
 	// Save changes
-	updatedOrder, err := u.repo.Update(ctx, order)
+	updatedOrder, err := app.Repositories.Order.Update(ctx, order)
 	if err != nil {
 		return nil, err
 	}
 
-	allStatuses := make([]string, len(domain.ValidStatuses))
-	for i, s := range domain.ValidStatuses {
-		allStatuses[i] = string(s)
-	}
-
-	return &OrderOutput{
-		ID:            updatedOrder.ID,
-		ProfileID:     updatedOrder.ProfileID,
-		UserID:        updatedOrder.UserID,
-		Status:        string(updatedOrder.Status),
-		StatusMessage: updatedOrder.StatusMessage,
-		StatusIndex:   updatedOrder.StatusIndex(),
-		ETA:           updatedOrder.ETA,
-		Data:          updatedOrder.Data,
-		CreatedAt:     updatedOrder.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt:     updatedOrder.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-		AllStatuses:   allStatuses,
-	}, nil
+	output := toOrderOutput(updatedOrder)
+	return &output, nil
 }

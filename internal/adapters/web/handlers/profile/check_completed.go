@@ -23,7 +23,7 @@ func NewCheckCompletedHandler(usecase profileUsecase.CheckCompletedUsecase) gin.
 			return
 		}
 
-		output, appErr := usecase.Execute(c.Request.Context(), userID)
+		output, appErr := usecase.Execute(c, userID)
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

@@ -3,7 +3,7 @@ package profile
 import (
 	"context"
 
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
 
@@ -20,17 +20,19 @@ type ValidateTokenUsecase interface {
 }
 
 type validateTokenUsecase struct {
-	repo profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewValidateTokenUsecase creates a new instance of ValidateTokenUsecase
-func NewValidateTokenUsecase(repo profileRepo.Repository) ValidateTokenUsecase {
-	return &validateTokenUsecase{repo: repo}
+func NewValidateTokenUsecase(contextFactory appcontext.Factory) ValidateTokenUsecase {
+	return &validateTokenUsecase{contextFactory: contextFactory}
 }
 
 // Execute validates a profile token
 func (u *validateTokenUsecase) Execute(ctx context.Context, token string) (*ValidateTokenOutput, apperrors.ApplicationError) {
-	profileToken, err := u.repo.GetToken(ctx, token)
+	app := u.contextFactory()
+
+	profileToken, err := app.Repositories.Profile.GetToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,8 @@ package profile
 import (
 	"context"
 
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
 
@@ -19,20 +19,7 @@ type CompleteProfileInput struct {
 
 // CompleteProfileOutput represents the output after completing a profile
 type CompleteProfileOutput struct {
-	ID          string   `json:"id"`
-	UserID      string   `json:"user_id"`
-	PhoneNumber string   `json:"phone_number"`
-	Location    *LocationOutput `json:"location"`
-	CreatedAt   string   `json:"created_at"`
-	UpdatedAt   string   `json:"updated_at"`
-}
-
-// LocationOutput represents location data in the output
-type LocationOutput struct {
-	ID        string  `json:"id"`
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Address   string  `json:"address"`
+	Data ProfileOutputData `json:"data"`
 }
 
 // CompleteProfileUsecase defines the interface for completing profiles
@@ -41,18 +28,20 @@ type CompleteProfileUsecase interface {
 }
 
 type completeProfileUsecase struct {
-	repo profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewCompleteProfileUsecase creates a new instance of CompleteProfileUsecase
-func NewCompleteProfileUsecase(repo profileRepo.Repository) CompleteProfileUsecase {
-	return &completeProfileUsecase{repo: repo}
+func NewCompleteProfileUsecase(contextFactory appcontext.Factory) CompleteProfileUsecase {
+	return &completeProfileUsecase{contextFactory: contextFactory}
 }
 
 // Execute completes a user profile
 func (u *completeProfileUsecase) Execute(ctx context.Context, input CompleteProfileInput) (*CompleteProfileOutput, apperrors.ApplicationError) {
+	app := u.contextFactory()
+
 	// Validate token
-	profileToken, err := u.repo.GetToken(ctx, input.Token)
+	profileToken, err := app.Repositories.Profile.GetToken(ctx, input.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -64,13 +53,13 @@ func (u *completeProfileUsecase) Execute(ctx context.Context, input CompleteProf
 		Address:   input.Address,
 	}
 
-	createdLocation, err := u.repo.CreateLocation(ctx, location)
+	createdLocation, err := app.Repositories.Profile.CreateLocation(ctx, location)
 	if err != nil {
 		return nil, err
 	}
 
 	// Check if profile already exists for this user
-	existingProfile, _ := u.repo.GetByUserID(ctx, profileToken.UserID)
+	existingProfile, _ := app.Repositories.Profile.GetByUserID(ctx, profileToken.UserID)
 
 	var resultProfile *domain.Profile
 
@@ -78,7 +67,7 @@ func (u *completeProfileUsecase) Execute(ctx context.Context, input CompleteProf
 		// Update existing profile
 		existingProfile.PhoneNumber = input.PhoneNumber
 		existingProfile.LocationID = &createdLocation.ID
-		resultProfile, err = u.repo.Update(ctx, existingProfile)
+		resultProfile, err = app.Repositories.Profile.Update(ctx, existingProfile)
 		if err != nil {
 			return nil, err
 		}
@@ -89,28 +78,18 @@ func (u *completeProfileUsecase) Execute(ctx context.Context, input CompleteProf
 			PhoneNumber: input.PhoneNumber,
 			LocationID:  &createdLocation.ID,
 		}
-		resultProfile, err = u.repo.Create(ctx, newProfile)
+		resultProfile, err = app.Repositories.Profile.Create(ctx, newProfile)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	// Mark token as used
-	if markErr := u.repo.MarkTokenUsed(ctx, input.Token); markErr != nil {
+	if markErr := app.Repositories.Profile.MarkTokenUsed(ctx, input.Token); markErr != nil {
 		return nil, markErr
 	}
 
 	return &CompleteProfileOutput{
-		ID:          resultProfile.ID,
-		UserID:      resultProfile.UserID,
-		PhoneNumber: resultProfile.PhoneNumber,
-		Location: &LocationOutput{
-			ID:        createdLocation.ID,
-			Longitude: createdLocation.Longitude,
-			Latitude:  createdLocation.Latitude,
-			Address:   createdLocation.Address,
-		},
-		CreatedAt: resultProfile.CreatedAt.Format("2006-01-02T15:04:05Z"),
-		UpdatedAt: resultProfile.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		Data: toProfileOutputData(resultProfile, createdLocation),
 	}, nil
 }

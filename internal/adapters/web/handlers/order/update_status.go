@@ -4,17 +4,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	orderUsecase "wappi/internal/usecases/order"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
+	orderUsecase "wappi/internal/usecases/order"
 )
+
+type UpdateStatusInput struct {
+	Status string `json:"status" binding:"required"`
+}
 
 // NewUpdateStatusHandler creates a handler for updating order status
 func NewUpdateStatusHandler(usecase orderUsecase.UpdateStatusUsecase) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 
-		var input orderUsecase.UpdateStatusInput
+		var input UpdateStatusInput
 		if err := c.ShouldBindJSON(&input); err != nil {
 			appErr := apperrors.NewApplicationError(mappings.RequestBodyParsingError, err)
 			appErr.Log(c)
@@ -22,7 +26,9 @@ func NewUpdateStatusHandler(usecase orderUsecase.UpdateStatusUsecase) gin.Handle
 			return
 		}
 
-		output, appErr := usecase.Execute(c.Request.Context(), id, input)
+		output, appErr := usecase.Execute(c, id, orderUsecase.UpdateStatusInput{
+			Status: input.Status,
+		})
 		if appErr != nil {
 			appErr.Log(c)
 			c.JSON(appErr.StatusCode(), appErr)

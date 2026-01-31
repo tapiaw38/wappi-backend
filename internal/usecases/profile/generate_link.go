@@ -4,10 +4,9 @@ import (
 	"context"
 	"time"
 
-	"wappi/internal/adapters/datasources/repositories/profile"
 	"wappi/internal/domain"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/config"
 )
 
 // GenerateLinkInput represents the input for generating a profile link
@@ -28,17 +27,17 @@ type GenerateLinkUsecase interface {
 }
 
 type generateLinkUsecase struct {
-	repo profile.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewGenerateLinkUsecase creates a new instance of GenerateLinkUsecase
-func NewGenerateLinkUsecase(repo profile.Repository) GenerateLinkUsecase {
-	return &generateLinkUsecase{repo: repo}
+func NewGenerateLinkUsecase(contextFactory appcontext.Factory) GenerateLinkUsecase {
+	return &generateLinkUsecase{contextFactory: contextFactory}
 }
 
 // Execute generates a profile completion link
 func (u *generateLinkUsecase) Execute(ctx context.Context, input GenerateLinkInput) (*GenerateLinkOutput, apperrors.ApplicationError) {
-	cfg := config.GetInstance()
+	app := u.contextFactory()
 
 	// Create token with 24 hour expiration
 	expiresAt := time.Now().Add(24 * time.Hour)
@@ -49,13 +48,13 @@ func (u *generateLinkUsecase) Execute(ctx context.Context, input GenerateLinkInp
 		ExpiresAt: expiresAt,
 	}
 
-	created, err := u.repo.CreateToken(ctx, token)
+	created, err := app.Repositories.Profile.CreateToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}
 
 	// Generate the frontend link
-	link := cfg.FrontendURL + "/complete-profile/" + created.Token
+	link := app.ConfigService.FrontendURL + "/complete-profile/" + created.Token
 
 	return &GenerateLinkOutput{
 		Link:      link,

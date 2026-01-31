@@ -3,27 +3,9 @@ package admin
 import (
 	"context"
 
-	profileRepo "wappi/internal/adapters/datasources/repositories/profile"
+	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 )
-
-// ProfileOutput represents a profile in the admin list
-type ProfileOutput struct {
-	ID          string          `json:"id"`
-	UserID      string          `json:"user_id"`
-	PhoneNumber string          `json:"phone_number"`
-	Location    *LocationOutput `json:"location,omitempty"`
-	CreatedAt   string          `json:"created_at"`
-	UpdatedAt   string          `json:"updated_at"`
-}
-
-// LocationOutput represents a location in the output
-type LocationOutput struct {
-	ID        string  `json:"id"`
-	Longitude float64 `json:"longitude"`
-	Latitude  float64 `json:"latitude"`
-	Address   string  `json:"address"`
-}
 
 // ListProfilesOutput represents the output for listing profiles
 type ListProfilesOutput struct {
@@ -37,17 +19,19 @@ type ListProfilesUsecase interface {
 }
 
 type listProfilesUsecase struct {
-	repo profileRepo.Repository
+	contextFactory appcontext.Factory
 }
 
 // NewListProfilesUsecase creates a new instance of ListProfilesUsecase
-func NewListProfilesUsecase(repo profileRepo.Repository) ListProfilesUsecase {
-	return &listProfilesUsecase{repo: repo}
+func NewListProfilesUsecase(contextFactory appcontext.Factory) ListProfilesUsecase {
+	return &listProfilesUsecase{contextFactory: contextFactory}
 }
 
 // Execute lists all profiles
 func (u *listProfilesUsecase) Execute(ctx context.Context) (*ListProfilesOutput, apperrors.ApplicationError) {
-	profiles, err := u.repo.GetAll(ctx)
+	app := u.contextFactory()
+
+	profiles, err := app.Repositories.Profile.GetAll(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +52,7 @@ func (u *listProfilesUsecase) Execute(ctx context.Context) (*ListProfilesOutput,
 
 		// Get location if exists
 		if p.LocationID != nil {
-			location, locErr := u.repo.GetLocationByID(ctx, *p.LocationID)
+			location, locErr := app.Repositories.Profile.GetLocationByID(ctx, *p.LocationID)
 			if locErr == nil && location != nil {
 				profileOutput.Location = &LocationOutput{
 					ID:        location.ID,
