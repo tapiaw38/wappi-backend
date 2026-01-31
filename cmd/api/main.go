@@ -26,7 +26,9 @@ func main() {
 
 	// Initialize database
 	db := database.GetInstance()
-	if err := database.RunMigrations(db); err != nil {
+
+	// Run migrations
+	if err := database.RunMigrations(); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 

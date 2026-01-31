@@ -2,9 +2,15 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 	"sync"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
 	"wappi/internal/platform/config"
 )
@@ -33,108 +39,59 @@ func GetInstance() *sql.DB {
 	return db
 }
 
-// RunMigrations creates the necessary tables
-func RunMigrations(db *sql.DB) error {
-	schema := `
-	-- Profile locations (must be created first)
-	CREATE TABLE IF NOT EXISTS profile_locations (
-		id UUID PRIMARY KEY,
-		longitude DOUBLE PRECISION NOT NULL,
-		latitude DOUBLE PRECISION NOT NULL,
-		address TEXT NOT NULL DEFAULT '',
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-	);
+func getRelativePathToMigrationsDirectory() (string, error) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
 
-	-- Profiles (depends on profile_locations)
-	CREATE TABLE IF NOT EXISTS profiles (
-		id UUID PRIMARY KEY,
-		user_id VARCHAR(255) NOT NULL UNIQUE,
-		phone_number VARCHAR(50) NOT NULL,
-		location_id UUID REFERENCES profile_locations(id),
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-	);
+	absMigrationsDirPath := filepath.Join(cwd, "migrations")
 
-	CREATE INDEX IF NOT EXISTS idx_profiles_user_id ON profiles(user_id);
+	relMigrationsDirPath, err := filepath.Rel(cwd, absMigrationsDirPath)
+	if err != nil {
+		return "", err
+	}
 
-	-- Orders (depends on profiles)
-	CREATE TABLE IF NOT EXISTS orders (
-		id UUID PRIMARY KEY,
-		profile_id UUID REFERENCES profiles(id),
-		user_id VARCHAR(255),
-		status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
-		eta VARCHAR(255),
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-		updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-	);
+	return fmt.Sprintf("file://%s", relMigrationsDirPath), nil
+}
 
-	-- Add user_id column to orders if it doesn't exist (migration for existing tables)
-	DO $$
-	BEGIN
-		IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'user_id') THEN
-			ALTER TABLE orders ADD COLUMN user_id VARCHAR(255);
-		END IF;
-	END $$;
-
-	-- Make profile_id nullable if it's NOT NULL (migration for existing tables)
-	DO $$
-	BEGIN
-		IF EXISTS (
-			SELECT 1 FROM information_schema.columns
-			WHERE table_name = 'orders' AND column_name = 'profile_id' AND is_nullable = 'NO'
-		) THEN
-			ALTER TABLE orders ALTER COLUMN profile_id DROP NOT NULL;
-		END IF;
-	END $$;
-
-	-- Add data column to orders (JSONB for order items)
-	DO $$
-	BEGIN
-		IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'orders' AND column_name = 'data') THEN
-			ALTER TABLE orders ADD COLUMN data JSONB;
-		END IF;
-	END $$;
-
-	CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-	CREATE INDEX IF NOT EXISTS idx_orders_created_at ON orders(created_at);
-	CREATE INDEX IF NOT EXISTS idx_orders_profile_id ON orders(profile_id);
-	CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
-
-	-- Order tokens (for claiming orders via link)
-	CREATE TABLE IF NOT EXISTS order_tokens (
-		id UUID PRIMARY KEY,
-		order_id UUID NOT NULL REFERENCES orders(id),
-		token VARCHAR(255) NOT NULL UNIQUE,
-		phone_number VARCHAR(50),
-		claimed_at TIMESTAMP WITH TIME ZONE,
-		claimed_by_user_id VARCHAR(255),
-		expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-	);
-
-	CREATE INDEX IF NOT EXISTS idx_order_tokens_token ON order_tokens(token);
-	CREATE INDEX IF NOT EXISTS idx_order_tokens_order_id ON order_tokens(order_id);
-
-	-- Profile tokens
-	CREATE TABLE IF NOT EXISTS profile_tokens (
-		id UUID PRIMARY KEY,
-		user_id VARCHAR(255) NOT NULL,
-		token VARCHAR(255) NOT NULL UNIQUE,
-		used BOOLEAN DEFAULT FALSE,
-		expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
-		created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-	);
-
-	CREATE INDEX IF NOT EXISTS idx_profile_tokens_token ON profile_tokens(token);
-	CREATE INDEX IF NOT EXISTS idx_profile_tokens_user_id ON profile_tokens(user_id);
-	`
-
-	_, err := db.Exec(schema)
+// RunMigrations applies all pending database migrations
+func RunMigrations() error {
+	cfg := config.GetInstance()
+	migrationPath, err := getRelativePathToMigrationsDirectory()
 	if err != nil {
 		return err
 	}
 
-	log.Println("Database migrations completed")
+	m, err := migrate.New(migrationPath, cfg.DatabaseURL)
+	if err != nil {
+		return err
+	}
+	defer func() {
+		srcErr, dbErr := m.Close()
+		if srcErr != nil {
+			log.Printf("migrations: error closing source: %v", srcErr)
+		}
+		if dbErr != nil {
+			log.Printf("migrations: error closing database: %v", dbErr)
+		}
+	}()
+
+	version, dirty, err := m.Version()
+	if err != nil && err != migrate.ErrNilVersion {
+		return fmt.Errorf("failed to get migration version: %w", err)
+	}
+	log.Printf("migrations: current version is %v (dirty: %v)", version, dirty)
+
+	if err := m.Up(); err != nil {
+		if err == migrate.ErrNoChange {
+			log.Println("migrations: no new migrations to apply")
+			return nil
+		}
+		return fmt.Errorf("failed to apply migrations: %w", err)
+	}
+
+	log.Println("migrations: database migrated successfully")
+
 	return nil
 }

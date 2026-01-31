@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine as builder
+FROM golang:1.24-alpine as builder
 
 LABEL maintainer="wappi"
 
@@ -29,6 +29,9 @@ WORKDIR /root/
 
 # Copy binary from builder
 COPY --from=builder /app/wappi .
+
+# Copy migrations folder
+COPY --from=builder /app/migrations ./migrations
 
 # Expose port
 EXPOSE 8080

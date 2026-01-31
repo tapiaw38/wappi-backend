@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/gin-gonic/gin"
 	adminHandler "wappi/internal/adapters/web/handlers/admin"
 	orderHandler "wappi/internal/adapters/web/handlers/order"
 	profileHandler "wappi/internal/adapters/web/handlers/profile"
@@ -11,6 +10,8 @@ import (
 	orderUsecase "wappi/internal/usecases/order"
 	profileUsecase "wappi/internal/usecases/profile"
 	settingsUsecase "wappi/internal/usecases/settings"
+
+	"github.com/gin-gonic/gin"
 )
 
 // RegisterRoutes registers all application routes
