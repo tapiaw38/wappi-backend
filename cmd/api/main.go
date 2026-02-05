@@ -5,6 +5,8 @@ import (
 
 	"wappi/internal/adapters/datasources"
 	"wappi/internal/adapters/web"
+	websocketHandler "wappi/internal/adapters/web/handlers/websocket"
+	"wappi/internal/adapters/web/integrations"
 	"wappi/internal/adapters/web/middlewares"
 	"wappi/internal/platform/appcontext"
 	"wappi/internal/platform/config"
@@ -15,43 +17,34 @@ import (
 )
 
 func main() {
-	// Load configuration
 	cfg := config.GetInstance()
 	log.Printf("Starting Order Tracking API on port %s", cfg.ServerPort)
 
-	// Initialize database
 	db := database.GetInstance()
 
-	// Run migrations
 	if err := database.RunMigrations(); err != nil {
 		log.Fatalf("Failed to run migrations: %v", err)
 	}
 
-	// Create datasources
 	ds := datasources.CreateDatasources(db)
+	integrations := integrations.CreateIntegration(cfg)
+	contextFactory := appcontext.NewFactory(ds, integrations, cfg)
 
-	// Create context factory for dependency injection
-	contextFactory := appcontext.NewFactory(ds, cfg)
-
-	// Initialize use cases
 	useCases := usecases.CreateUsecases(contextFactory)
 
-	// Setup Gin
 	gin.SetMode(cfg.GinMode)
 	app := gin.Default()
 
-	// Apply CORS middleware
 	app.Use(middlewares.CORSMiddleware())
 
-	// Register routes
-	web.RegisterRoutes(app, useCases, cfg.FrontendURL)
+	hub := integrations.WebSocket.GetHub()
+	wsHandler := websocketHandler.NewHandler(hub)
+	web.RegisterRoutes(app, useCases, cfg.FrontendURL, wsHandler)
 
-	// Health check endpoint
 	app.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
-	// Start server
 	if err := app.Run(":" + cfg.ServerPort); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

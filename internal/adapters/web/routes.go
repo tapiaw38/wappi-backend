@@ -6,19 +6,19 @@ import (
 	orderHandler "wappi/internal/adapters/web/handlers/order"
 	profileHandler "wappi/internal/adapters/web/handlers/profile"
 	settingsHandler "wappi/internal/adapters/web/handlers/settings"
+	websocketHandler "wappi/internal/adapters/web/handlers/websocket"
 	"wappi/internal/adapters/web/middlewares"
 	"wappi/internal/usecases"
 )
 
 // RegisterRoutes registers all application routes
-func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL string) {
+func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL string, wsHandler *websocketHandler.Handler) {
 	api := app.Group("/api")
 
 	// Public order routes (tracking by UUID - no auth needed)
 	orders := api.Group("/orders")
 	{
 		orders.GET("/:id", orderHandler.NewGetHandler(useCases.Order.GetUsecase))
-		// Create order with link (admin functionality, no auth for now)
 		orders.POST("/create-with-link", orderHandler.NewCreateWithLinkHandler(useCases.Order.CreateWithLinkUsecase, frontendURL))
 	}
 
@@ -28,9 +28,7 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL st
 	{
 		ordersAuth.POST("", orderHandler.NewCreateHandler(useCases.Order.CreateUsecase))
 		ordersAuth.PATCH("/:id/status", orderHandler.NewUpdateStatusHandler(useCases.Order.UpdateStatusUsecase))
-		// Claim order with token
 		ordersAuth.POST("/claim/:token", orderHandler.NewClaimHandler(useCases.Order.ClaimUsecase))
-		// List current user's orders
 		ordersAuth.GET("/my", orderHandler.NewListMyHandler(useCases.Order.ListMyOrdersUsecase))
 	}
 
@@ -67,4 +65,7 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL st
 		admin.GET("/orders", adminHandler.NewListOrdersHandler(useCases.Admin.ListOrdersUsecase))
 		admin.PUT("/orders/:id", adminHandler.NewUpdateOrderHandler(useCases.Admin.UpdateOrderUsecase))
 	}
+
+	// WebSocket routes (auth handled via query parameter in handler)
+	app.GET("/ws/notifications", wsHandler.HandleWebSocket)
 }

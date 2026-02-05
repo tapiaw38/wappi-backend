@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"wappi/internal/adapters/web/websocket"
 	"wappi/internal/platform/appcontext"
 	"wappi/internal/usecases/admin"
 	"wappi/internal/usecases/order"
@@ -46,11 +47,15 @@ type Settings struct {
 }
 
 func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
+	app := contextFactory()
+	hub := app.Integrations.WebSocket.GetHub()
+	notifier := websocket.NewNotifier(hub)
+
 	return &Usecases{
 		Order: Order{
 			CreateUsecase:         order.NewCreateUsecase(contextFactory),
 			CreateWithLinkUsecase: order.NewCreateWithLinkUsecase(contextFactory),
-			ClaimUsecase:          order.NewClaimUsecase(contextFactory),
+			ClaimUsecase:          order.NewClaimUsecase(contextFactory, notifier),
 			GetUsecase:            order.NewGetUsecase(contextFactory),
 			UpdateStatusUsecase:   order.NewUpdateStatusUsecase(contextFactory),
 			ListMyOrdersUsecase:   order.NewListMyOrdersUsecase(contextFactory),

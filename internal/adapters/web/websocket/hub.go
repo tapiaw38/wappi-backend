@@ -1,0 +1,112 @@
+package websocket
+
+import (
+	"encoding/json"
+	"log"
+	"sync"
+
+	"github.com/gorilla/websocket"
+)
+
+type NotificationType string
+
+const (
+	OrderClaimedNotification NotificationType = "order_claimed"
+	OrderUpdatedNotification NotificationType = "order_updated"
+)
+
+type Notification struct {
+	Type    NotificationType `json:"type"`
+	Payload interface{}      `json:"payload"`
+}
+
+type OrderClaimedPayload struct {
+	OrderID   string `json:"order_id"`
+	UserID    string `json:"user_id"`
+	ProfileID string `json:"profile_id,omitempty"`
+	Status    string `json:"status"`
+	ETA       string `json:"eta"`
+	ClaimedAt string `json:"claimed_at"`
+}
+
+type Client struct {
+	Hub       *Hub
+	Conn      *websocket.Conn
+	Send      chan []byte
+	IsManager bool
+}
+
+type Hub struct {
+	clients    map[*Client]bool
+	broadcast  chan []byte
+	Register   chan *Client
+	Unregister chan *Client
+	mu         sync.RWMutex
+}
+
+func NewHub() *Hub {
+	return &Hub{
+		clients:    make(map[*Client]bool),
+		broadcast:  make(chan []byte),
+		Register:   make(chan *Client),
+		Unregister: make(chan *Client),
+	}
+}
+
+func (h *Hub) Run() {
+	for {
+		select {
+		case client := <-h.Register:
+			h.mu.Lock()
+			h.clients[client] = true
+			h.mu.Unlock()
+			log.Printf("WebSocket client registered. Total clients: %d", len(h.clients))
+
+		case client := <-h.Unregister:
+			h.mu.Lock()
+			if _, ok := h.clients[client]; ok {
+				delete(h.clients, client)
+				close(client.Send)
+			}
+			h.mu.Unlock()
+			log.Printf("WebSocket client unregistered. Total clients: %d", len(h.clients))
+
+		case message := <-h.broadcast:
+			h.mu.RLock()
+			for client := range h.clients {
+				if client.IsManager {
+					select {
+					case client.Send <- message:
+					default:
+						close(client.Send)
+						delete(h.clients, client)
+					}
+				}
+			}
+			h.mu.RUnlock()
+		}
+	}
+}
+
+func (h *Hub) BroadcastNotification(notification Notification) error {
+	data, err := json.Marshal(notification)
+	if err != nil {
+		return err
+	}
+	h.broadcast <- data
+	return nil
+}
+
+func (h *Hub) NotifyOrderClaimed(payload OrderClaimedPayload) error {
+	notification := Notification{
+		Type:    OrderClaimedNotification,
+		Payload: payload,
+	}
+	return h.BroadcastNotification(notification)
+}
+
+func (h *Hub) GetClientCount() int {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return len(h.clients)
+}

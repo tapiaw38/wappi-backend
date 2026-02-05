@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"wappi/internal/platform/appcontext"
+	"wappi/internal/usecases/notification"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 )
@@ -32,12 +33,16 @@ type ClaimUsecase interface {
 }
 
 type claimUsecase struct {
-	contextFactory appcontext.Factory
+	contextFactory  appcontext.Factory
+	notificationSvc notification.Service
 }
 
 // NewClaimUsecase creates a new instance of ClaimUsecase
-func NewClaimUsecase(contextFactory appcontext.Factory) ClaimUsecase {
-	return &claimUsecase{contextFactory: contextFactory}
+func NewClaimUsecase(contextFactory appcontext.Factory, notificationSvc notification.Service) ClaimUsecase {
+	return &claimUsecase{
+		contextFactory:  contextFactory,
+		notificationSvc: notificationSvc,
+	}
 }
 
 // Execute claims an order for a user
@@ -92,6 +97,28 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 	updatedOrder, err := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Send notification to managers
+	if u.notificationSvc != nil {
+		payload := notification.OrderClaimedPayload{
+			OrderID:   updatedOrder.ID,
+			UserID:    input.UserID,
+			Status:    string(updatedOrder.Status),
+			ETA:       updatedOrder.ETA,
+			ClaimedAt: time.Now().Format("2006-01-02T15:04:05Z"),
+		}
+		if updatedOrder.ProfileID != nil {
+			payload.ProfileID = *updatedOrder.ProfileID
+		}
+		// Send notification asynchronously to not block the response
+		go func() {
+			if notifyErr := u.notificationSvc.NotifyOrderClaimed(payload); notifyErr != nil {
+				// Log error but don't fail the request
+				// In production, you might want to use a proper logger
+				_ = notifyErr
+			}
+		}()
 	}
 
 	return &ClaimOutput{
