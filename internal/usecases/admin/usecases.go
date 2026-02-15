@@ -2,20 +2,23 @@ package admin
 
 import (
 	"wappi/internal/platform/appcontext"
+	settingsUsecase "wappi/internal/usecases/settings"
 )
 
 // Usecases aggregates all admin-related use cases
 type Usecases struct {
-	ListProfiles ListProfilesUsecase
-	ListOrders   ListOrdersUsecase
-	UpdateOrder  UpdateOrderUsecase
+	ListProfiles     ListProfilesUsecase
+	ListOrders       ListOrdersUsecase
+	ListTransactions ListTransactionsUsecase
+	UpdateOrder      UpdateOrderUsecase
 }
 
 // NewUsecases creates all admin use cases
-func NewUsecases(contextFactory appcontext.Factory) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory, calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase) *Usecases {
 	return &Usecases{
-		ListProfiles: NewListProfilesUsecase(contextFactory),
-		ListOrders:   NewListOrdersUsecase(contextFactory),
-		UpdateOrder:  NewUpdateOrderUsecase(contextFactory),
+		ListProfiles:     NewListProfilesUsecase(contextFactory),
+		ListOrders:       NewListOrdersUsecase(contextFactory),
+		ListTransactions: NewListTransactionsUsecase(contextFactory),
+		UpdateOrder:      NewUpdateOrderUsecase(contextFactory, calculateDeliveryFeeUse),
 	}
 }

@@ -15,6 +15,7 @@ type Settings struct {
 	DeliveryBasePrice   float64   `json:"delivery_base_price"`
 	DeliveryPricePerKm  float64   `json:"delivery_price_per_km"`
 	DeliveryPricePerKg  float64   `json:"delivery_price_per_kg"`
+	ManagerCollectorID  *string   `json:"manager_collector_id,omitempty"` // MercadoPago collector ID for manager account
 	CreatedAt           time.Time `json:"created_at"`
 	UpdatedAt           time.Time `json:"updated_at"`
 }

@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"wappi/internal/domain"
@@ -30,11 +31,18 @@ func NewUpdateOrderHandler(usecase adminUsecase.UpdateOrderUsecase) gin.HandlerF
 			return
 		}
 
+		authHeader := c.GetHeader("Authorization")
+		var token string
+		if authHeader != "" {
+			token = strings.TrimPrefix(authHeader, "Bearer ")
+		}
+
 		output, appErr := usecase.Execute(c, id, adminUsecase.UpdateOrderInput{
 			Status:        input.Status,
 			StatusMessage: input.StatusMessage,
 			ETA:           input.ETA,
 			Data:          input.Data,
+			Token:         token,
 		})
 		if appErr != nil {
 			appErr.Log(c)

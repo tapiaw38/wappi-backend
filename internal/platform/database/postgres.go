@@ -83,6 +83,14 @@ func RunMigrations() error {
 	}
 	log.Printf("migrations: current version is %v (dirty: %v)", version, dirty)
 
+	if dirty {
+		log.Printf("migrations: database is in dirty state, forcing version to %v", version)
+		if err := m.Force(int(version)); err != nil {
+			return fmt.Errorf("failed to force migration version: %w", err)
+		}
+		log.Println("migrations: dirty state cleared, retrying migration")
+	}
+
 	if err := m.Up(); err != nil {
 		if err == migrate.ErrNoChange {
 			log.Println("migrations: no new migrations to apply")

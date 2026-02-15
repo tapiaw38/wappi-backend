@@ -21,6 +21,7 @@ type Order struct {
 	CreateWithLinkUsecase order.CreateWithLinkUsecase
 	ClaimUsecase          order.ClaimUsecase
 	GetUsecase            order.GetUsecase
+	GetClaimInfoUsecase   order.GetClaimInfoUsecase
 	UpdateStatusUsecase   order.UpdateStatusUsecase
 	ListMyOrdersUsecase   order.ListMyOrdersUsecase
 }
@@ -31,13 +32,15 @@ type Profile struct {
 	CompleteProfileUsecase profile.CompleteProfileUsecase
 	GetUsecase             profile.GetProfileUsecase
 	UpdateUsecase          profile.UpdateProfileUsecase
+	UpsertUsecase          profile.UpsertProfileUsecase
 	CheckCompletedUsecase  profile.CheckCompletedUsecase
 }
 
 type Admin struct {
-	ListProfilesUsecase admin.ListProfilesUsecase
-	ListOrdersUsecase   admin.ListOrdersUsecase
-	UpdateOrderUsecase  admin.UpdateOrderUsecase
+	ListProfilesUsecase     admin.ListProfilesUsecase
+	ListOrdersUsecase       admin.ListOrdersUsecase
+	ListTransactionsUsecase admin.ListTransactionsUsecase
+	UpdateOrderUsecase      admin.UpdateOrderUsecase
 }
 
 type Settings struct {
@@ -51,13 +54,20 @@ func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
 	hub := app.Integrations.WebSocket.GetHub()
 	notifier := websocket.NewNotifier(hub)
 
+	settingsUsecases := Settings{
+		GetUsecase:                  settings.NewGetUsecase(contextFactory),
+		UpdateUsecase:               settings.NewUpdateUsecase(contextFactory),
+		CalculateDeliveryFeeUsecase: settings.NewCalculateDeliveryFeeUsecase(contextFactory),
+	}
+
 	return &Usecases{
 		Order: Order{
-			CreateUsecase:         order.NewCreateUsecase(contextFactory),
+			CreateUsecase:         order.NewCreateUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
 			CreateWithLinkUsecase: order.NewCreateWithLinkUsecase(contextFactory),
-			ClaimUsecase:          order.NewClaimUsecase(contextFactory, notifier),
+			ClaimUsecase:          order.NewClaimUsecase(contextFactory, notifier, settingsUsecases.CalculateDeliveryFeeUsecase),
 			GetUsecase:            order.NewGetUsecase(contextFactory),
-			UpdateStatusUsecase:   order.NewUpdateStatusUsecase(contextFactory),
+			GetClaimInfoUsecase:   order.NewGetClaimInfoUsecase(contextFactory),
+			UpdateStatusUsecase:   order.NewUpdateStatusUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
 			ListMyOrdersUsecase:   order.NewListMyOrdersUsecase(contextFactory),
 		},
 		Profile: Profile{
@@ -66,17 +76,15 @@ func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
 			CompleteProfileUsecase: profile.NewCompleteProfileUsecase(contextFactory),
 			GetUsecase:             profile.NewGetProfileUsecase(contextFactory),
 			UpdateUsecase:          profile.NewUpdateProfileUsecase(contextFactory),
+			UpsertUsecase:          profile.NewUpsertProfileUsecase(contextFactory),
 			CheckCompletedUsecase:  profile.NewCheckCompletedUsecase(contextFactory),
 		},
 		Admin: Admin{
-			ListProfilesUsecase: admin.NewListProfilesUsecase(contextFactory),
-			ListOrdersUsecase:   admin.NewListOrdersUsecase(contextFactory),
-			UpdateOrderUsecase:  admin.NewUpdateOrderUsecase(contextFactory),
+			ListProfilesUsecase:     admin.NewListProfilesUsecase(contextFactory),
+			ListOrdersUsecase:       admin.NewListOrdersUsecase(contextFactory),
+			ListTransactionsUsecase: admin.NewListTransactionsUsecase(contextFactory),
+			UpdateOrderUsecase:      admin.NewUpdateOrderUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
 		},
-		Settings: Settings{
-			GetUsecase:                  settings.NewGetUsecase(contextFactory),
-			UpdateUsecase:               settings.NewUpdateUsecase(contextFactory),
-			CalculateDeliveryFeeUsecase: settings.NewCalculateDeliveryFeeUsecase(contextFactory),
-		},
+		Settings: settingsUsecases,
 	}
 }

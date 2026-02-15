@@ -26,8 +26,15 @@ func NewUpdateStatusHandler(usecase orderUsecase.UpdateStatusUsecase) gin.Handle
 			return
 		}
 
+		authHeader := c.GetHeader("Authorization")
+		var token string
+		if authHeader != "" && len(authHeader) > 7 {
+			token = authHeader[7:]
+		}
+
 		output, appErr := usecase.Execute(c, id, orderUsecase.UpdateStatusInput{
 			Status: input.Status,
+			Token:  token,
 		})
 		if appErr != nil {
 			appErr.Log(c)

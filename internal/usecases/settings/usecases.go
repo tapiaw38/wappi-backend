@@ -66,6 +66,7 @@ type UpdateInput struct {
 	DeliveryBasePrice   *float64 `json:"delivery_base_price,omitempty"`
 	DeliveryPricePerKm  *float64 `json:"delivery_price_per_km,omitempty"`
 	DeliveryPricePerKg  *float64 `json:"delivery_price_per_kg,omitempty"`
+	ManagerCollectorID  *string  `json:"manager_collector_id,omitempty"`
 }
 
 type UpdateOutput struct {
@@ -123,6 +124,9 @@ func (u *updateUsecase) Execute(ctx context.Context, input UpdateInput) (*Update
 	}
 	if input.DeliveryPricePerKg != nil {
 		current.DeliveryPricePerKg = *input.DeliveryPricePerKg
+	}
+	if input.ManagerCollectorID != nil {
+		current.ManagerCollectorID = input.ManagerCollectorID
 	}
 
 	// Save

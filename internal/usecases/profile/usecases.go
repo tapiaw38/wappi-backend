@@ -11,6 +11,7 @@ type Usecases struct {
 	CompleteProfile CompleteProfileUsecase
 	Get             GetProfileUsecase
 	Update          UpdateProfileUsecase
+	Upsert          UpsertProfileUsecase
 	CheckCompleted  CheckCompletedUsecase
 }
 
@@ -22,6 +23,7 @@ func NewUsecases(contextFactory appcontext.Factory) *Usecases {
 		CompleteProfile: NewCompleteProfileUsecase(contextFactory),
 		Get:             NewGetProfileUsecase(contextFactory),
 		Update:          NewUpdateProfileUsecase(contextFactory),
+		Upsert:          NewUpsertProfileUsecase(contextFactory),
 		CheckCompleted:  NewCheckCompletedUsecase(contextFactory),
 	}
 }

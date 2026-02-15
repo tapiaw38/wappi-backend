@@ -37,6 +37,23 @@ type LocationOutput struct {
 	Address   string  `json:"address"`
 }
 
+// TransactionOutput represents a transaction in the admin list
+type TransactionOutput struct {
+	ID               string  `json:"id"`
+	OrderID          string  `json:"order_id"`
+	UserID           string  `json:"user_id"`
+	ProfileID        *string `json:"profile_id,omitempty"`
+	Amount           float64 `json:"amount"`
+	Currency         string  `json:"currency"`
+	Status           string  `json:"status"`
+	PaymentID        *int    `json:"payment_id,omitempty"`
+	GatewayPaymentID *string `json:"gateway_payment_id,omitempty"`
+	CollectorID      *string `json:"collector_id,omitempty"`
+	Description      *string `json:"description,omitempty"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
+}
+
 // toOrderOutput converts a domain order to output
 func toOrderOutput(order *domain.Order) OrderOutput {
 	allStatuses := make([]string, len(domain.ValidStatuses))
@@ -56,5 +73,24 @@ func toOrderOutput(order *domain.Order) OrderOutput {
 		CreatedAt:     order.CreatedAt.Format("2006-01-02T15:04:05Z"),
 		UpdatedAt:     order.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		AllStatuses:   allStatuses,
+	}
+}
+
+// toTransactionOutput converts a domain transaction to output
+func toTransactionOutput(transaction *domain.Transaction) TransactionOutput {
+	return TransactionOutput{
+		ID:               transaction.ID,
+		OrderID:          transaction.OrderID,
+		UserID:           transaction.UserID,
+		ProfileID:        transaction.ProfileID,
+		Amount:           transaction.Amount,
+		Currency:         transaction.Currency,
+		Status:           transaction.Status,
+		PaymentID:        transaction.PaymentID,
+		GatewayPaymentID: transaction.GatewayPaymentID,
+		CollectorID:      transaction.CollectorID,
+		Description:      transaction.Description,
+		CreatedAt:        transaction.CreatedAt.Format("2006-01-02T15:04:05Z"),
+		UpdatedAt:        transaction.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 	}
 }

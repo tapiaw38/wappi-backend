@@ -3,18 +3,22 @@ package order
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"wappi/internal/platform/appcontext"
 	"wappi/internal/usecases/notification"
+	settingsUsecase "wappi/internal/usecases/settings"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
 )
 
 // ClaimInput represents the input for claiming an order
 type ClaimInput struct {
-	Token  string `json:"token" binding:"required"`
-	UserID string `json:"user_id" binding:"required"`
+	Token        string `json:"token" binding:"required"`
+	UserID       string `json:"user_id" binding:"required"`
+	SecurityCode string `json:"security_code"`
+	AuthToken    string
 }
 
 // ClaimOutput represents the output after claiming an order
@@ -33,15 +37,17 @@ type ClaimUsecase interface {
 }
 
 type claimUsecase struct {
-	contextFactory  appcontext.Factory
-	notificationSvc notification.Service
+	contextFactory          appcontext.Factory
+	notificationSvc         notification.Service
+	calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase
 }
 
 // NewClaimUsecase creates a new instance of ClaimUsecase
-func NewClaimUsecase(contextFactory appcontext.Factory, notificationSvc notification.Service) ClaimUsecase {
+func NewClaimUsecase(contextFactory appcontext.Factory, notificationSvc notification.Service, calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase) ClaimUsecase {
 	return &claimUsecase{
-		contextFactory:  contextFactory,
-		notificationSvc: notificationSvc,
+		contextFactory:          contextFactory,
+		notificationSvc:         notificationSvc,
+		calculateDeliveryFeeUse: calculateDeliveryFeeUse,
 	}
 }
 
@@ -62,6 +68,18 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 
 	// Check if already claimed
 	if orderToken.ClaimedAt != nil {
+		// Return the order info so frontend can redirect to it
+		order, _ := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
+		if order != nil {
+			return &ClaimOutput{
+				OrderID:   order.ID,
+				UserID:    *order.UserID,
+				ProfileID: order.ProfileID,
+				Status:    string(order.Status),
+				ETA:       order.ETA,
+				ClaimedAt: orderToken.ClaimedAt.Format("2006-01-02T15:04:05Z"),
+			}, nil
+		}
 		return nil, apperrors.NewApplicationError(mappings.OrderTokenAlreadyClaimedError, errors.New("token already claimed"))
 	}
 
@@ -86,6 +104,25 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 	if profile != nil {
 		// User has a profile, assign it to the order
 		_ = app.Repositories.Order.AssignProfile(ctx, orderToken.OrderID, profile.ID)
+	}
+
+	// Process payment if security code is provided
+	if input.SecurityCode != "" {
+		// Get the updated order with profile assigned
+		orderWithProfile, _ := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
+
+		paymentErr := ProcessPaymentForOrder(ctx, app, orderWithProfile, input.AuthToken, input.SecurityCode, u.calculateDeliveryFeeUse)
+		if paymentErr != nil {
+			log.Printf("Payment failed for claimed order %s: %v", orderToken.OrderID, paymentErr)
+			// Unassign user from order since payment failed
+			_ = app.Repositories.Order.AssignUser(ctx, orderToken.OrderID, "")
+			if profile != nil {
+				_ = app.Repositories.Order.AssignProfile(ctx, orderToken.OrderID, "")
+			}
+			return nil, apperrors.NewApplicationError(mappings.OrderPaymentFailedError, paymentErr)
+		}
+		// Payment successful - update status to CONFIRMED
+		_, _ = app.Repositories.Order.UpdateStatus(ctx, orderToken.OrderID, "CONFIRMED")
 	}
 
 	// Mark token as claimed

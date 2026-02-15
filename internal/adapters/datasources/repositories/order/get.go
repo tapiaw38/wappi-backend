@@ -13,18 +13,20 @@ import (
 // GetByID retrieves an order by its ID
 func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		WHERE id = $1
 	`
 
 	var order domain.Order
 	var dataJSON []byte
+	var statusMessage sql.NullString
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&order.ID,
 		&order.ProfileID,
 		&order.UserID,
 		&order.Status,
+		&statusMessage,
 		&order.ETA,
 		&dataJSON,
 		&order.CreatedAt,
@@ -44,13 +46,17 @@ func (r *repository) GetByID(ctx context.Context, id string) (*domain.Order, app
 		}
 	}
 
+	if statusMessage.Valid {
+		order.StatusMessage = &statusMessage.String
+	}
+
 	return &order, nil
 }
 
 // GetAll retrieves all orders
 func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		ORDER BY created_at DESC
 	`
@@ -65,11 +71,13 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 	for rows.Next() {
 		var order domain.Order
 		var dataJSON []byte
+		var statusMessage sql.NullString
 		err := rows.Scan(
 			&order.ID,
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
+			&statusMessage,
 			&order.ETA,
 			&dataJSON,
 			&order.CreatedAt,
@@ -80,6 +88,9 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 		}
 		if dataJSON != nil {
 			_ = order.SetDataFromJSON(dataJSON)
+		}
+		if statusMessage.Valid {
+			order.StatusMessage = &statusMessage.String
 		}
 		orders = append(orders, &order)
 	}
@@ -94,7 +105,7 @@ func (r *repository) GetAll(ctx context.Context) ([]*domain.Order, apperrors.App
 // GetByUserID retrieves all orders for a specific user
 func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.Order, apperrors.ApplicationError) {
 	query := `
-		SELECT id, profile_id, user_id, status, eta, data, created_at, updated_at
+		SELECT id, profile_id, user_id, status, status_message, eta, data, created_at, updated_at
 		FROM orders
 		WHERE user_id = $1
 		ORDER BY created_at DESC
@@ -110,11 +121,13 @@ func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.
 	for rows.Next() {
 		var order domain.Order
 		var dataJSON []byte
+		var statusMessage sql.NullString
 		err := rows.Scan(
 			&order.ID,
 			&order.ProfileID,
 			&order.UserID,
 			&order.Status,
+			&statusMessage,
 			&order.ETA,
 			&dataJSON,
 			&order.CreatedAt,
@@ -125,6 +138,9 @@ func (r *repository) GetByUserID(ctx context.Context, userID string) ([]*domain.
 		}
 		if dataJSON != nil {
 			_ = order.SetDataFromJSON(dataJSON)
+		}
+		if statusMessage.Valid {
+			order.StatusMessage = &statusMessage.String
 		}
 		orders = append(orders, &order)
 	}

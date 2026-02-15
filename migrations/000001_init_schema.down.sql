@@ -16,3 +16,5 @@ DROP INDEX IF EXISTS idx_profiles_user_id;
 DROP TABLE IF EXISTS profiles;
 
 DROP TABLE IF EXISTS profile_locations;
+
+DROP TABLE IF EXISTS settings;

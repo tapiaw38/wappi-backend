@@ -64,3 +64,20 @@ CREATE TABLE IF NOT EXISTS profile_tokens (
 
 CREATE INDEX IF NOT EXISTS idx_profile_tokens_token ON profile_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_profile_tokens_user_id ON profile_tokens(user_id);
+
+-- Settings (application configuration)
+CREATE TABLE IF NOT EXISTS settings (
+    id VARCHAR(255) PRIMARY KEY,
+    business_name VARCHAR(255) NOT NULL DEFAULT '',
+    business_latitude DOUBLE PRECISION NOT NULL DEFAULT -34.6037,
+    business_longitude DOUBLE PRECISION NOT NULL DEFAULT -58.3816,
+    default_map_latitude DOUBLE PRECISION NOT NULL DEFAULT -34.6037,
+    default_map_longitude DOUBLE PRECISION NOT NULL DEFAULT -58.3816,
+    default_map_zoom INTEGER NOT NULL DEFAULT 13,
+    default_item_weight INTEGER NOT NULL DEFAULT 500,
+    delivery_base_price DOUBLE PRECISION NOT NULL DEFAULT 500,
+    delivery_price_per_km DOUBLE PRECISION NOT NULL DEFAULT 200,
+    delivery_price_per_kg DOUBLE PRECISION NOT NULL DEFAULT 100,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

@@ -4,15 +4,17 @@ import (
 	"github.com/gin-gonic/gin"
 	adminHandler "wappi/internal/adapters/web/handlers/admin"
 	orderHandler "wappi/internal/adapters/web/handlers/order"
+	paymentHandler "wappi/internal/adapters/web/handlers/payment"
 	profileHandler "wappi/internal/adapters/web/handlers/profile"
 	settingsHandler "wappi/internal/adapters/web/handlers/settings"
 	websocketHandler "wappi/internal/adapters/web/handlers/websocket"
 	"wappi/internal/adapters/web/middlewares"
+	"wappi/internal/platform/appcontext"
 	"wappi/internal/usecases"
 )
 
 // RegisterRoutes registers all application routes
-func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL string, wsHandler *websocketHandler.Handler) {
+func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL string, wsHandler *websocketHandler.Handler, contextFactory appcontext.Factory) {
 	api := app.Group("/api")
 
 	// Public order routes (tracking by UUID - no auth needed)
@@ -20,6 +22,7 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL st
 	{
 		orders.GET("/:id", orderHandler.NewGetHandler(useCases.Order.GetUsecase))
 		orders.POST("/create-with-link", orderHandler.NewCreateWithLinkHandler(useCases.Order.CreateWithLinkUsecase, frontendURL))
+		orders.GET("/claim/:token/info", orderHandler.NewGetClaimInfoHandler(useCases.Order.GetClaimInfoUsecase))
 	}
 
 	// Protected order routes (require auth)
@@ -47,6 +50,7 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL st
 	{
 		profilesAuth.POST("/generate-link", profileHandler.NewGenerateLinkHandler(useCases.Profile.GenerateLinkUsecase))
 		profilesAuth.GET("/check-completed", profileHandler.NewCheckCompletedHandler(useCases.Profile.CheckCompletedUsecase))
+		profilesAuth.POST("/upsert", profileHandler.NewUpsertHandler(useCases.Profile.UpsertUsecase))
 	}
 
 	// Settings routes (public for reading, could add auth for updating)
@@ -63,7 +67,15 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, frontendURL st
 	{
 		admin.GET("/profiles", adminHandler.NewListProfilesHandler(useCases.Admin.ListProfilesUsecase))
 		admin.GET("/orders", adminHandler.NewListOrdersHandler(useCases.Admin.ListOrdersUsecase))
+		admin.GET("/transactions", adminHandler.NewListTransactionsHandler(useCases.Admin.ListTransactionsUsecase))
 		admin.PUT("/orders/:id", adminHandler.NewUpdateOrderHandler(useCases.Admin.UpdateOrderUsecase))
+	}
+
+	// Payment routes (require auth)
+	payment := api.Group("/payment")
+	payment.Use(middlewares.AuthMiddleware())
+	{
+		payment.GET("/check/:user_id", paymentHandler.NewHandler(contextFactory).CheckPaymentMethod)
 	}
 
 	// WebSocket routes (auth handled via query parameter in handler)

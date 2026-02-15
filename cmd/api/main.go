@@ -39,7 +39,7 @@ func main() {
 
 	hub := integrations.WebSocket.GetHub()
 	wsHandler := websocketHandler.NewHandler(hub)
-	web.RegisterRoutes(app, useCases, cfg.FrontendURL, wsHandler)
+	web.RegisterRoutes(app, useCases, cfg.FrontendURL, wsHandler, contextFactory)
 
 	app.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})

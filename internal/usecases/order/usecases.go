@@ -3,6 +3,7 @@ package order
 import (
 	"wappi/internal/platform/appcontext"
 	"wappi/internal/usecases/notification"
+	settingsUsecase "wappi/internal/usecases/settings"
 )
 
 // Usecases aggregates all order-related use cases
@@ -16,13 +17,13 @@ type Usecases struct {
 }
 
 // NewUsecases creates all order use cases
-func NewUsecases(contextFactory appcontext.Factory, notificationSvc notification.Service) *Usecases {
+func NewUsecases(contextFactory appcontext.Factory, notificationSvc notification.Service, calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase) *Usecases {
 	return &Usecases{
-		Create:         NewCreateUsecase(contextFactory),
+		Create:         NewCreateUsecase(contextFactory, calculateDeliveryFeeUse),
 		CreateWithLink: NewCreateWithLinkUsecase(contextFactory),
-		Claim:          NewClaimUsecase(contextFactory, notificationSvc),
+		Claim:          NewClaimUsecase(contextFactory, notificationSvc, calculateDeliveryFeeUse),
 		Get:            NewGetUsecase(contextFactory),
-		UpdateStatus:   NewUpdateStatusUsecase(contextFactory),
+		UpdateStatus:   NewUpdateStatusUsecase(contextFactory, calculateDeliveryFeeUse),
 		ListMyOrders:   NewListMyOrdersUsecase(contextFactory),
 	}
 }

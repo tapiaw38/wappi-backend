@@ -33,18 +33,23 @@ func (r *repository) Get(ctx context.Context) (*domain.Settings, apperrors.Appli
 		SELECT id, business_name, business_latitude, business_longitude,
 			   default_map_latitude, default_map_longitude, default_map_zoom,
 			   default_item_weight, delivery_base_price, delivery_price_per_km,
-			   delivery_price_per_kg, created_at, updated_at
+			   delivery_price_per_kg, manager_collector_id, created_at, updated_at
 		FROM settings
 		LIMIT 1
 	`
 
 	var s domain.Settings
+	var managerCollectorID sql.NullString
 	err := r.db.QueryRowContext(ctx, query).Scan(
 		&s.ID, &s.BusinessName, &s.BusinessLatitude, &s.BusinessLongitude,
 		&s.DefaultMapLatitude, &s.DefaultMapLongitude, &s.DefaultMapZoom,
 		&s.DefaultItemWeight, &s.DeliveryBasePrice, &s.DeliveryPricePerKm,
-		&s.DeliveryPricePerKg, &s.CreatedAt, &s.UpdatedAt,
+		&s.DeliveryPricePerKg, &managerCollectorID, &s.CreatedAt, &s.UpdatedAt,
 	)
+
+	if err == nil && managerCollectorID.Valid {
+		s.ManagerCollectorID = &managerCollectorID.String
+	}
 
 	if err == sql.ErrNoRows {
 		// Return default settings if none exist
@@ -88,15 +93,15 @@ func (r *repository) Upsert(ctx context.Context, settings *domain.Settings) (*do
 				id, business_name, business_latitude, business_longitude,
 				default_map_latitude, default_map_longitude, default_map_zoom,
 				default_item_weight, delivery_base_price, delivery_price_per_km,
-				delivery_price_per_kg, created_at, updated_at
-			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+				delivery_price_per_kg, manager_collector_id, created_at, updated_at
+			) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 		`
 
 		_, err := r.db.ExecContext(ctx, query,
 			settings.ID, settings.BusinessName, settings.BusinessLatitude, settings.BusinessLongitude,
 			settings.DefaultMapLatitude, settings.DefaultMapLongitude, settings.DefaultMapZoom,
 			settings.DefaultItemWeight, settings.DeliveryBasePrice, settings.DeliveryPricePerKm,
-			settings.DeliveryPricePerKg, settings.CreatedAt, settings.UpdatedAt,
+			settings.DeliveryPricePerKg, settings.ManagerCollectorID, settings.CreatedAt, settings.UpdatedAt,
 		)
 
 		if err != nil {
@@ -113,15 +118,15 @@ func (r *repository) Upsert(ctx context.Context, settings *domain.Settings) (*do
 				business_name = $1, business_latitude = $2, business_longitude = $3,
 				default_map_latitude = $4, default_map_longitude = $5, default_map_zoom = $6,
 				default_item_weight = $7, delivery_base_price = $8, delivery_price_per_km = $9,
-				delivery_price_per_kg = $10, updated_at = $11
-			WHERE id = $12
+				delivery_price_per_kg = $10, manager_collector_id = $11, updated_at = $12
+			WHERE id = $13
 		`
 
 		_, err := r.db.ExecContext(ctx, query,
 			settings.BusinessName, settings.BusinessLatitude, settings.BusinessLongitude,
 			settings.DefaultMapLatitude, settings.DefaultMapLongitude, settings.DefaultMapZoom,
 			settings.DefaultItemWeight, settings.DeliveryBasePrice, settings.DeliveryPricePerKm,
-			settings.DeliveryPricePerKg, settings.UpdatedAt, settings.ID,
+			settings.DeliveryPricePerKg, settings.ManagerCollectorID, settings.UpdatedAt, settings.ID,
 		)
 
 		if err != nil {

@@ -34,6 +34,7 @@ type UpdateInput struct {
 	DeliveryBasePrice   *float64 `json:"delivery_base_price,omitempty"`
 	DeliveryPricePerKm  *float64 `json:"delivery_price_per_km,omitempty"`
 	DeliveryPricePerKg  *float64 `json:"delivery_price_per_kg,omitempty"`
+	ManagerCollectorID  *string  `json:"manager_collector_id,omitempty"`
 }
 
 // NewUpdateHandler creates a handler for updating settings
@@ -48,16 +49,17 @@ func NewUpdateHandler(usecase settingsUsecase.UpdateUsecase) gin.HandlerFunc {
 		}
 
 		output, appErr := usecase.Execute(c, settingsUsecase.UpdateInput{
-			BusinessName:        input.BusinessName,
-			BusinessLatitude:    input.BusinessLatitude,
-			BusinessLongitude:   input.BusinessLongitude,
-			DefaultMapLatitude:  input.DefaultMapLatitude,
+			BusinessName:       input.BusinessName,
+			BusinessLatitude:   input.BusinessLatitude,
+			BusinessLongitude:  input.BusinessLongitude,
+			DefaultMapLatitude: input.DefaultMapLatitude,
 			DefaultMapLongitude: input.DefaultMapLongitude,
-			DefaultMapZoom:      input.DefaultMapZoom,
-			DefaultItemWeight:   input.DefaultItemWeight,
-			DeliveryBasePrice:   input.DeliveryBasePrice,
-			DeliveryPricePerKm:  input.DeliveryPricePerKm,
-			DeliveryPricePerKg:  input.DeliveryPricePerKg,
+			DefaultMapZoom:     input.DefaultMapZoom,
+			DefaultItemWeight:  input.DefaultItemWeight,
+			DeliveryBasePrice:  input.DeliveryBasePrice,
+			DeliveryPricePerKm: input.DeliveryPricePerKm,
+			DeliveryPricePerKg: input.DeliveryPricePerKg,
+			ManagerCollectorID: input.ManagerCollectorID,
 		})
 		if appErr != nil {
 			appErr.Log(c)

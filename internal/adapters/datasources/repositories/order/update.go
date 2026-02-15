@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"wappi/internal/domain"
@@ -49,7 +50,12 @@ func (r *repository) Update(ctx context.Context, order *domain.Order) (*domain.O
 		WHERE id = $6
 	`
 
-	result, err := r.db.ExecContext(ctx, query, order.Status, order.StatusMessage, order.ETA, dataJSON, order.UpdatedAt, order.ID)
+	var statusMessage sql.NullString
+	if order.StatusMessage != nil {
+		statusMessage = sql.NullString{String: *order.StatusMessage, Valid: true}
+	}
+
+	result, err := r.db.ExecContext(ctx, query, order.Status, statusMessage, order.ETA, dataJSON, order.UpdatedAt, order.ID)
 	if err != nil {
 		return nil, apperrors.NewApplicationError(mappings.OrderUpdateError, err)
 	}

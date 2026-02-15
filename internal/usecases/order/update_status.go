@@ -7,6 +7,7 @@ import (
 	"wappi/internal/platform/appcontext"
 	apperrors "wappi/internal/platform/errors"
 	"wappi/internal/platform/errors/mappings"
+	settingsUsecase "wappi/internal/usecases/settings"
 
 	"github.com/google/uuid"
 )
@@ -14,6 +15,7 @@ import (
 // UpdateStatusInput represents the input for updating order status
 type UpdateStatusInput struct {
 	Status string `json:"status" binding:"required"`
+	Token  string
 }
 
 // UpdateStatusOutput represents the output after updating order status
@@ -27,12 +29,16 @@ type UpdateStatusUsecase interface {
 }
 
 type updateStatusUsecase struct {
-	contextFactory appcontext.Factory
+	contextFactory          appcontext.Factory
+	calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase
 }
 
 // NewUpdateStatusUsecase creates a new instance of UpdateStatusUsecase
-func NewUpdateStatusUsecase(contextFactory appcontext.Factory) UpdateStatusUsecase {
-	return &updateStatusUsecase{contextFactory: contextFactory}
+func NewUpdateStatusUsecase(contextFactory appcontext.Factory, calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase) UpdateStatusUsecase {
+	return &updateStatusUsecase{
+		contextFactory:          contextFactory,
+		calculateDeliveryFeeUse: calculateDeliveryFeeUse,
+	}
 }
 
 // Execute updates the status of an order
@@ -52,7 +58,11 @@ func (u *updateStatusUsecase) Execute(ctx context.Context, id string, input Upda
 		return nil, err
 	}
 
+	// Payment processing removed - payments are now processed at order creation
+	// Keeping this comment for reference
+
 	return &UpdateStatusOutput{
 		Data: toOrderOutputData(updated, false),
 	}, nil
 }
+

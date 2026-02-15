@@ -64,4 +64,10 @@ var (
 		StatusCode: http.StatusConflict,
 		Message:    "order is already assigned to a user",
 	}
+
+	OrderPaymentFailedError = ErrorDetails{
+		Code:       "order:payment-failed",
+		StatusCode: http.StatusPaymentRequired,
+		Message:    "payment processing failed",
+	}
 )
