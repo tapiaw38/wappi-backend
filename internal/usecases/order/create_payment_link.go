@@ -87,19 +87,47 @@ func (u *createPaymentLinkUsecase) Execute(ctx context.Context, input CreatePaym
 		payerEmail = fmt.Sprintf("%s@wappi.local", profile.UserID)
 	}
 
-	// Calculate order total
-	orderTotal, calcErr := calculateOrderTotal(ctx, app, order, profile, u.calculateDeliveryFeeUse)
-	if calcErr != nil {
-		return nil, apperrors.NewApplicationError(mappings.OrderPaymentFailedError, fmt.Errorf("failed to calculate order total: %w", calcErr))
+	// Calculate items subtotal
+	var itemsTotal float64
+	if order.Data != nil {
+		for _, item := range order.Data.Items {
+			itemsTotal += item.Price * float64(item.Quantity)
+		}
 	}
+
+	// Calculate delivery fee separately
+	var deliveryFee float64
+	if profile.LocationID != nil {
+		location, locErr := app.Repositories.Profile.GetLocationByID(ctx, *profile.LocationID)
+		if locErr == nil && location != nil {
+			deliveryInput := settingsUsecase.CalculateDeliveryFeeInput{
+				UserLatitude:  location.Latitude,
+				UserLongitude: location.Longitude,
+				Items: make([]struct {
+					Quantity int  `json:"quantity"`
+					Weight   *int `json:"weight,omitempty"`
+				}, len(order.Data.Items)),
+			}
+			if order.Data != nil {
+				for i, item := range order.Data.Items {
+					deliveryInput.Items[i].Quantity = item.Quantity
+					deliveryInput.Items[i].Weight = item.Weight
+				}
+			}
+			if feeOutput, feeErr := u.calculateDeliveryFeeUse.Execute(ctx, deliveryInput); feeErr == nil && feeOutput != nil {
+				deliveryFee = feeOutput.TotalPrice
+			}
+		}
+	}
+
+	orderTotal := math.Round((itemsTotal+deliveryFee)*100) / 100
 	if orderTotal <= 0 {
 		return nil, apperrors.NewApplicationError(mappings.OrderPaymentFailedError, errors.New("order total is zero or negative"))
 	}
-	orderTotal = math.Round(orderTotal*100) / 100
 
-	// Build preference items from order items
+	// Build preference items: products + delivery fee if applicable
 	var prefItems []payments.PreferenceItem
-	if order.Data != nil {
+	if order.Data != nil && len(order.Data.Items) > 0 {
 		for _, item := range order.Data.Items {
 			prefItems = append(prefItems, payments.PreferenceItem{
 				Title:      item.Name,
@@ -108,6 +136,14 @@ func (u *createPaymentLinkUsecase) Execute(ctx context.Context, input CreatePaym
 				CurrencyID: "ARS",
 			})
 		}
+	}
+	if deliveryFee > 0 {
+		prefItems = append(prefItems, payments.PreferenceItem{
+			Title:      "Envío",
+			Quantity:   1,
+			UnitPrice:  math.Round(deliveryFee*100) / 100,
+			CurrencyID: "ARS",
+		})
 	}
 	if len(prefItems) == 0 {
 		prefItems = append(prefItems, payments.PreferenceItem{
