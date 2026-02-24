@@ -1,8 +1,8 @@
 package admin
 
 import (
-	"wappi/internal/platform/appcontext"
-	settingsUsecase "wappi/internal/usecases/settings"
+	"yego/internal/platform/appcontext"
+	settingsUsecase "yego/internal/usecases/settings"
 )
 
 // Usecases aggregates all admin-related use cases

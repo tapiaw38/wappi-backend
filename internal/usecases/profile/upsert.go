@@ -3,9 +3,9 @@ package profile
 import (
 	"context"
 
-	"wappi/internal/domain"
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
+	"yego/internal/domain"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
 
 	"github.com/google/uuid"
 )

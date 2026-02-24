@@ -3,15 +3,15 @@ package main
 import (
 	"log"
 
-	"wappi/internal/adapters/datasources"
-	"wappi/internal/adapters/web"
-	websocketHandler "wappi/internal/adapters/web/handlers/websocket"
-	"wappi/internal/adapters/web/integrations"
-	"wappi/internal/adapters/web/middlewares"
-	"wappi/internal/platform/appcontext"
-	"wappi/internal/platform/config"
-	"wappi/internal/platform/database"
-	"wappi/internal/usecases"
+	"yego/internal/adapters/datasources"
+	"yego/internal/adapters/web"
+	websocketHandler "yego/internal/adapters/web/handlers/websocket"
+	"yego/internal/adapters/web/integrations"
+	"yego/internal/adapters/web/middlewares"
+	"yego/internal/platform/appcontext"
+	"yego/internal/platform/config"
+	"yego/internal/platform/database"
+	"yego/internal/usecases"
 
 	"github.com/gin-gonic/gin"
 )

@@ -6,10 +6,10 @@ import (
 	"log"
 	"math"
 
-	"wappi/internal/adapters/web/integrations/payments"
-	"wappi/internal/domain"
-	"wappi/internal/platform/appcontext"
-	settingsUsecase "wappi/internal/usecases/settings"
+	"yego/internal/adapters/web/integrations/payments"
+	"yego/internal/domain"
+	"yego/internal/platform/appcontext"
+	settingsUsecase "yego/internal/usecases/settings"
 )
 
 // ProcessPaymentForOrder processes the payment when an order is delivered.
@@ -59,10 +59,10 @@ func ProcessPaymentForOrder(ctx context.Context, app *appcontext.Context, order 
 		userEmail, emailErr = app.Integrations.Auth.GetUserEmail(profile.UserID, token)
 		if emailErr != nil {
 			log.Printf("Warning: Failed to get user email for user %s: %v", profile.UserID, emailErr)
-			userEmail = fmt.Sprintf("%s@wappi.local", profile.UserID)
+			userEmail = fmt.Sprintf("%s@yego.local", profile.UserID)
 		}
 	} else {
-		userEmail = fmt.Sprintf("%s@wappi.local", profile.UserID)
+		userEmail = fmt.Sprintf("%s@yego.local", profile.UserID)
 		log.Printf("Warning: No token provided, using placeholder email for user %s", profile.UserID)
 	}
 	if userEmail == "" {

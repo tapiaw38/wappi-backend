@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"wappi/internal/domain"
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
+	"yego/internal/domain"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
 )
 
 // CreateWithLinkItemInput represents a single item in the order
@@ -24,7 +24,7 @@ type CreateWithLinkDataInput struct {
 
 // CreateWithLinkInput represents the input for creating an order with a claim link
 type CreateWithLinkInput struct {
-	PhoneNumber string                   `json:"phone_number" binding:"required"`
+	PhoneNumber string                   `json:"phone_number"`
 	ETA         string                   `json:"eta"`
 	Data        *CreateWithLinkDataInput `json:"data,omitempty"`
 }
@@ -84,9 +84,13 @@ func (u *createWithLinkUsecase) Execute(ctx context.Context, input CreateWithLin
 
 	// Create order token for claiming
 	expiresAt := time.Now().Add(24 * time.Hour)
+	var phoneNumber *string
+	if input.PhoneNumber != "" {
+		phoneNumber = &input.PhoneNumber
+	}
 	orderToken := &domain.OrderToken{
 		OrderID:     created.ID,
-		PhoneNumber: &input.PhoneNumber,
+		PhoneNumber: phoneNumber,
 		ExpiresAt:   expiresAt,
 	}
 

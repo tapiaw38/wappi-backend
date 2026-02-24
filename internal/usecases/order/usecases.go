@@ -1,9 +1,9 @@
 package order
 
 import (
-	"wappi/internal/platform/appcontext"
-	"wappi/internal/usecases/notification"
-	settingsUsecase "wappi/internal/usecases/settings"
+	"yego/internal/platform/appcontext"
+	"yego/internal/usecases/notification"
+	settingsUsecase "yego/internal/usecases/settings"
 )
 
 // Usecases aggregates all order-related use cases

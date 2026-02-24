@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"wappi/internal/platform/config"
+	"yego/internal/platform/config"
 )
 
 type Integration interface {

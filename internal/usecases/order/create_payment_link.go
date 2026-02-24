@@ -7,11 +7,11 @@ import (
 	"log"
 	"math"
 
-	"wappi/internal/adapters/web/integrations/payments"
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	settingsUsecase "wappi/internal/usecases/settings"
+	"yego/internal/adapters/web/integrations/payments"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	settingsUsecase "yego/internal/usecases/settings"
 )
 
 // CreatePaymentLinkInput represents the input for creating a payment link
@@ -81,10 +81,10 @@ func (u *createPaymentLinkUsecase) Execute(ctx context.Context, input CreatePaym
 		payerEmail, emailErr = app.Integrations.Auth.GetUserEmail(profile.UserID, input.AuthToken)
 		if emailErr != nil {
 			log.Printf("Warning: Failed to get user email for user %s: %v", profile.UserID, emailErr)
-			payerEmail = fmt.Sprintf("%s@wappi.local", profile.UserID)
+			payerEmail = fmt.Sprintf("%s@yego.local", profile.UserID)
 		}
 	} else {
-		payerEmail = fmt.Sprintf("%s@wappi.local", profile.UserID)
+		payerEmail = fmt.Sprintf("%s@yego.local", profile.UserID)
 	}
 
 	// Calculate items subtotal
@@ -156,7 +156,7 @@ func (u *createPaymentLinkUsecase) Execute(ctx context.Context, input CreatePaym
 
 	frontendURL := input.FrontendURL
 	if frontendURL == "" {
-		frontendURL = "https://wappi.app"
+		frontendURL = "https://yego.app"
 	}
 	orderURL := fmt.Sprintf("%s/order/%s", frontendURL, order.ID)
 

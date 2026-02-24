@@ -1,6 +1,6 @@
 FROM golang:1.24-alpine as builder
 
-LABEL maintainer="wappi"
+LABEL maintainer="yego"
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o wappi ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o yego ./cmd/api
 
 # Final stage - minimal image
 FROM alpine:latest
@@ -28,7 +28,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy binary from builder
-COPY --from=builder /app/wappi .
+COPY --from=builder /app/yego .
 
 # Copy migrations folder
 COPY --from=builder /app/migrations ./migrations
@@ -37,4 +37,4 @@ COPY --from=builder /app/migrations ./migrations
 EXPOSE 8080
 
 # Run the binary
-CMD ["./wappi"]
+CMD ["./yego"]

@@ -1,12 +1,12 @@
 package usecases
 
 import (
-	"wappi/internal/adapters/web/websocket"
-	"wappi/internal/platform/appcontext"
-	"wappi/internal/usecases/admin"
-	"wappi/internal/usecases/order"
-	"wappi/internal/usecases/profile"
-	"wappi/internal/usecases/settings"
+	"yego/internal/adapters/web/websocket"
+	"yego/internal/platform/appcontext"
+	"yego/internal/usecases/admin"
+	"yego/internal/usecases/order"
+	"yego/internal/usecases/profile"
+	"yego/internal/usecases/settings"
 )
 
 type Usecases struct {
@@ -64,10 +64,10 @@ func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
 
 	return &Usecases{
 		Order: Order{
-			CreateUsecase:         order.NewCreateUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
-			CreateWithLinkUsecase: order.NewCreateWithLinkUsecase(contextFactory),
-			ClaimUsecase:          order.NewClaimUsecase(contextFactory, notifier, settingsUsecases.CalculateDeliveryFeeUsecase),
-			GetUsecase:            order.NewGetUsecase(contextFactory),
+			CreateUsecase:            order.NewCreateUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
+			CreateWithLinkUsecase:    order.NewCreateWithLinkUsecase(contextFactory),
+			ClaimUsecase:             order.NewClaimUsecase(contextFactory, notifier, settingsUsecases.CalculateDeliveryFeeUsecase),
+			GetUsecase:               order.NewGetUsecase(contextFactory),
 			GetClaimInfoUsecase:      order.NewGetClaimInfoUsecase(contextFactory),
 			PayForOrderUsecase:       order.NewPayForOrderUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
 			CreatePaymentLinkUsecase: order.NewCreatePaymentLinkUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),

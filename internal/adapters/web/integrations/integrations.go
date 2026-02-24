@@ -1,10 +1,10 @@
 package integrations
 
 import (
-	"wappi/internal/adapters/web/integrations/auth"
-	"wappi/internal/adapters/web/integrations/payments"
-	"wappi/internal/adapters/web/integrations/websocket"
-	"wappi/internal/platform/config"
+	"yego/internal/adapters/web/integrations/auth"
+	"yego/internal/adapters/web/integrations/payments"
+	"yego/internal/adapters/web/integrations/websocket"
+	"yego/internal/platform/config"
 )
 
 type Integrations struct {

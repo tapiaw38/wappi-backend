@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"wappi/internal/domain"
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
+	"yego/internal/domain"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
 )
 
 // GenerateLinkInput represents the input for generating a profile link

@@ -2,15 +2,15 @@ package web
 
 import (
 	"github.com/gin-gonic/gin"
-	adminHandler "wappi/internal/adapters/web/handlers/admin"
-	orderHandler "wappi/internal/adapters/web/handlers/order"
-	paymentHandler "wappi/internal/adapters/web/handlers/payment"
-	profileHandler "wappi/internal/adapters/web/handlers/profile"
-	settingsHandler "wappi/internal/adapters/web/handlers/settings"
-	websocketHandler "wappi/internal/adapters/web/handlers/websocket"
-	"wappi/internal/adapters/web/middlewares"
-	"wappi/internal/platform/appcontext"
-	"wappi/internal/usecases"
+	adminHandler "yego/internal/adapters/web/handlers/admin"
+	orderHandler "yego/internal/adapters/web/handlers/order"
+	paymentHandler "yego/internal/adapters/web/handlers/payment"
+	profileHandler "yego/internal/adapters/web/handlers/profile"
+	settingsHandler "yego/internal/adapters/web/handlers/settings"
+	websocketHandler "yego/internal/adapters/web/handlers/websocket"
+	"yego/internal/adapters/web/middlewares"
+	"yego/internal/platform/appcontext"
+	"yego/internal/usecases"
 )
 
 // RegisterRoutes registers all application routes

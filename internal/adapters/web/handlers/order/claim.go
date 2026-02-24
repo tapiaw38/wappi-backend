@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"wappi/internal/adapters/web/middlewares"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	orderUsecase "wappi/internal/usecases/order"
+	"yego/internal/adapters/web/middlewares"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	orderUsecase "yego/internal/usecases/order"
 )
 
 // NewClaimHandler creates a handler for claiming orders via token

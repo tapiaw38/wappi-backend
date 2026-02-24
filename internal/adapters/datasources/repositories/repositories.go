@@ -1,12 +1,12 @@
 package repositories
 
 import (
-	"wappi/internal/adapters/datasources"
-	"wappi/internal/adapters/datasources/repositories/order"
-	"wappi/internal/adapters/datasources/repositories/ordertoken"
-	"wappi/internal/adapters/datasources/repositories/profile"
-	"wappi/internal/adapters/datasources/repositories/settings"
-	"wappi/internal/adapters/datasources/repositories/transaction"
+	"yego/internal/adapters/datasources"
+	"yego/internal/adapters/datasources/repositories/order"
+	"yego/internal/adapters/datasources/repositories/ordertoken"
+	"yego/internal/adapters/datasources/repositories/profile"
+	"yego/internal/adapters/datasources/repositories/settings"
+	"yego/internal/adapters/datasources/repositories/transaction"
 )
 
 type Repositories struct {

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	adminUsecase "wappi/internal/usecases/admin"
+	adminUsecase "yego/internal/usecases/admin"
 )
 
 // NewListOrdersHandler creates a handler for listing all orders

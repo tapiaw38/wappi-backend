@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	orderUsecase "wappi/internal/usecases/order"
+	orderUsecase "yego/internal/usecases/order"
 )
 
 // NewGetHandler creates a handler for getting orders

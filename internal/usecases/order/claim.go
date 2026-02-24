@@ -5,11 +5,11 @@ import (
 	"errors"
 	"time"
 
-	"wappi/internal/platform/appcontext"
-	"wappi/internal/usecases/notification"
-	settingsUsecase "wappi/internal/usecases/settings"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
+	"yego/internal/platform/appcontext"
+	"yego/internal/usecases/notification"
+	settingsUsecase "yego/internal/usecases/settings"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
 )
 
 // ClaimInput represents the input for claiming an order

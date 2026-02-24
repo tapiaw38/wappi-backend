@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"wappi/internal/domain"
+	"yego/internal/domain"
 )
 
 // ProfileOutputData represents basic profile data for outputs

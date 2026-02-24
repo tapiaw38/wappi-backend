@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"wappi/internal/platform/appcontext"
+	"yego/internal/platform/appcontext"
 )
 
 type Handler struct {

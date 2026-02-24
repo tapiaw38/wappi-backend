@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strings"
 
-	"wappi/internal/platform/config"
+	"yego/internal/platform/config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"

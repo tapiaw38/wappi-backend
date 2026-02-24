@@ -60,11 +60,11 @@ migrate-create: ## Create a new migration
 
 # Apply all available migrations
 migrate-up: ## Apply all available migrations
-	@migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/wappi?sslmode=disable' up
+	@migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/yego?sslmode=disable' up
 
 # Revert the last migration
 migrate-down: ## Revert the last migration
-	@migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/wappi?sslmode=disable' down
+	@migrate -path migrations -database 'postgres://postgres:postgres@localhost:5432/yego?sslmode=disable' down
 
 # Show help
 help:

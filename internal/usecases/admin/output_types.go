@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"wappi/internal/domain"
+	"yego/internal/domain"
 )
 
 // OrderOutput represents an order in the admin list

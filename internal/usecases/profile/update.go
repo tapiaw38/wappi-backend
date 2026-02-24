@@ -3,10 +3,10 @@ package profile
 import (
 	"context"
 
-	"wappi/internal/domain"
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
+	"yego/internal/domain"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
 
 	"github.com/google/uuid"
 )

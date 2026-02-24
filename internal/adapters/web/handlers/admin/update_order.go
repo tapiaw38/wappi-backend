@@ -5,10 +5,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"wappi/internal/domain"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	adminUsecase "wappi/internal/usecases/admin"
+	"yego/internal/domain"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	adminUsecase "yego/internal/usecases/admin"
 )
 
 type UpdateOrderInput struct {

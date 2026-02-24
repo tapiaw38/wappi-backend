@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"wappi/internal/domain"
-	apperrors "wappi/internal/platform/errors"
+	"yego/internal/domain"
+	apperrors "yego/internal/platform/errors"
 )
 
 // Repository defines the interface for profile data operations

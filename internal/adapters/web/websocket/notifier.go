@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"wappi/internal/usecases/notification"
+	"yego/internal/usecases/notification"
 )
 
 type Notifier struct {

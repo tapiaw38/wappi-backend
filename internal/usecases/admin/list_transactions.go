@@ -3,8 +3,8 @@ package admin
 import (
 	"context"
 
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
 )
 
 // ListTransactionsOutput represents the output for listing transactions

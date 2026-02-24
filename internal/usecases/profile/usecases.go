@@ -1,7 +1,7 @@
 package profile
 
 import (
-	"wappi/internal/platform/appcontext"
+	"yego/internal/platform/appcontext"
 )
 
 // Usecases aggregates all profile-related use cases

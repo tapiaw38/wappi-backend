@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	orderUsecase "wappi/internal/usecases/order"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	orderUsecase "yego/internal/usecases/order"
 )
 
 type UpdateStatusInput struct {

@@ -1,10 +1,10 @@
 package appcontext
 
 import (
-	"wappi/internal/adapters/datasources"
-	"wappi/internal/adapters/datasources/repositories"
-	"wappi/internal/adapters/web/integrations"
-	"wappi/internal/platform/config"
+	"yego/internal/adapters/datasources"
+	"yego/internal/adapters/datasources/repositories"
+	"yego/internal/adapters/web/integrations"
+	"yego/internal/platform/config"
 )
 
 type Context struct {

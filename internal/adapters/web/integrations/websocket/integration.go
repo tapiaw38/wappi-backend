@@ -1,8 +1,8 @@
 package websocket
 
 import (
-	"wappi/internal/platform/config"
-	ws "wappi/internal/adapters/web/websocket"
+	"yego/internal/platform/config"
+	ws "yego/internal/adapters/web/websocket"
 )
 
 type Integration interface {

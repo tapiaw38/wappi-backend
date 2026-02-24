@@ -3,10 +3,11 @@ package order
 import (
 	"net/http"
 
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	orderUsecase "yego/internal/usecases/order"
+
 	"github.com/gin-gonic/gin"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	orderUsecase "wappi/internal/usecases/order"
 )
 
 type CreateWithLinkItemInput struct {
@@ -21,7 +22,7 @@ type CreateWithLinkDataInput struct {
 }
 
 type CreateWithLinkInput struct {
-	PhoneNumber string                   `json:"phone_number" binding:"required"`
+	PhoneNumber string                   `json:"phone_number"`
 	ETA         string                   `json:"eta"`
 	Data        *CreateWithLinkDataInput `json:"data,omitempty"`
 }

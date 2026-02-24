@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
-	profileUsecase "wappi/internal/usecases/profile"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
+	profileUsecase "yego/internal/usecases/profile"
 )
 
 type CompleteProfileInput struct {

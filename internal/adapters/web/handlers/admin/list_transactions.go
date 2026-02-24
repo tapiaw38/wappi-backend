@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	adminUsecase "wappi/internal/usecases/admin"
+	adminUsecase "yego/internal/usecases/admin"
 )
 
 // NewListTransactionsHandler creates a handler for listing transactions

@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
-	"wappi/internal/platform/errors/mappings"
+	"yego/internal/platform/errors/mappings"
 )
 
 // ApplicationError represents a structured error for the application

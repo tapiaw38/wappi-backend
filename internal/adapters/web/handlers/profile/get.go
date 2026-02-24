@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	profileUsecase "wappi/internal/usecases/profile"
+	profileUsecase "yego/internal/usecases/profile"
 )
 
 // NewGetHandler creates a handler for getting a profile by ID

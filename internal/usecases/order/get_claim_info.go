@@ -3,9 +3,9 @@ package order
 import (
 	"context"
 
-	"wappi/internal/platform/appcontext"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
+	"yego/internal/platform/appcontext"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
 )
 
 // GetClaimInfoInput represents the input for getting claim info

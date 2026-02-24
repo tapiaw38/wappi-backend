@@ -1,7 +1,7 @@
 package order
 
 import (
-	"wappi/internal/domain"
+	"yego/internal/domain"
 )
 
 // OrderOutputData represents basic order data for outputs

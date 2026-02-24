@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"wappi/internal/domain"
-	apperrors "wappi/internal/platform/errors"
-	"wappi/internal/platform/errors/mappings"
+	"yego/internal/domain"
+	apperrors "yego/internal/platform/errors"
+	"yego/internal/platform/errors/mappings"
 )
 
 // Create inserts a new profile into the database

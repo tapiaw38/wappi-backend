@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"wappi/internal/adapters/web/middlewares"
-	"wappi/internal/platform/config"
-	ws "wappi/internal/adapters/web/websocket"
+	"yego/internal/adapters/web/middlewares"
+	"yego/internal/platform/config"
+	ws "yego/internal/adapters/web/websocket"
 )
 
 var upgrader = websocket.Upgrader{

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	profileUsecase "wappi/internal/usecases/profile"
+	profileUsecase "yego/internal/usecases/profile"
 )
 
 // NewValidateTokenHandler creates a handler for validating profile tokens

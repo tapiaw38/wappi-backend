@@ -26,7 +26,7 @@ func GetInstance() *ConfigurationService {
 
 		instance = &ConfigurationService{
 			ServerPort:       getEnvOrDefault("SERVER_PORT", "8080"),
-			DatabaseURL:      getEnvOrDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/wappi?sslmode=disable"),
+			DatabaseURL:      getEnvOrDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/yego?sslmode=disable"),
 			GinMode:          getEnvOrDefault("GIN_MODE", "debug"),
 			FrontendURL:       getEnvOrDefault("FRONTEND_URL", "http://localhost:5173"),
 			JWTSecret:        getEnvOrDefault("JWT_SECRET", ""),

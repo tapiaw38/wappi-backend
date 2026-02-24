@@ -1,4 +1,4 @@
-module wappi
+module yego
 
 go 1.24.0
 
