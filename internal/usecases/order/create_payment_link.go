@@ -67,7 +67,17 @@ func (u *createPaymentLinkUsecase) Execute(ctx context.Context, input CreatePaym
 	}
 
 	if order.ProfileID == nil {
-		return nil, apperrors.NewApplicationError(mappings.OrderPaymentFailedError, errors.New("order has no profile"))
+		// Profile was created after claiming — try to find and assign it now
+		if order.UserID != nil {
+			userProfile, profileLookupErr := app.Repositories.Profile.GetByUserID(ctx, *order.UserID)
+			if profileLookupErr == nil && userProfile != nil {
+				_ = app.Repositories.Order.AssignProfile(ctx, order.ID, userProfile.ID)
+				order.ProfileID = &userProfile.ID
+			}
+		}
+		if order.ProfileID == nil {
+			return nil, apperrors.NewApplicationError(mappings.OrderPaymentFailedError, errors.New("order has no profile"))
+		}
 	}
 
 	profile, profileErr := app.Repositories.Profile.GetByID(ctx, *order.ProfileID)

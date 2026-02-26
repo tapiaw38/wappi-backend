@@ -17,7 +17,17 @@ import (
 // the order total, charges the user, and records the transaction.
 func ProcessPaymentForOrder(ctx context.Context, app *appcontext.Context, order *domain.Order, token string, securityCode string, calculateDeliveryFeeUse settingsUsecase.CalculateDeliveryFeeUsecase) error {
 	if order.ProfileID == nil {
-		return fmt.Errorf("order has no profile_id")
+		// Profile may have been created after claiming — try to find and assign it now
+		if order.UserID != nil {
+			userProfile, profileLookupErr := app.Repositories.Profile.GetByUserID(ctx, *order.UserID)
+			if profileLookupErr == nil && userProfile != nil {
+				_ = app.Repositories.Order.AssignProfile(ctx, order.ID, userProfile.ID)
+				order.ProfileID = &userProfile.ID
+			}
+		}
+		if order.ProfileID == nil {
+			return fmt.Errorf("order has no profile_id")
+		}
 	}
 
 	profile, profileErr := app.Repositories.Profile.GetByID(ctx, *order.ProfileID)
@@ -25,17 +35,11 @@ func ProcessPaymentForOrder(ctx context.Context, app *appcontext.Context, order 
 		return fmt.Errorf("failed to get profile: %w", profileErr)
 	}
 
-	internalUserID := profile.UserID
-	if token != "" {
-		resolvedID, resolveErr := app.Integrations.Auth.GetUserIDByUsername(profile.UserID, token)
-		if resolveErr != nil {
-			log.Printf("Warning: could not resolve user ID for username %s: %v", profile.UserID, resolveErr)
-		} else {
-			internalUserID = resolvedID
-		}
-	}
+	// Payment methods are stored under profile.UserID (auth username).
+	// Use it directly to avoid the GetUserIDByUsername UUID mismatch.
+	paymentUserID := profile.UserID
 
-	hasPaymentMethod, paymentErr := app.Integrations.Payments.HasPaymentMethod(internalUserID)
+	hasPaymentMethod, paymentErr := app.Integrations.Payments.HasPaymentMethod(paymentUserID)
 	if paymentErr != nil {
 		return fmt.Errorf("failed to check payment method: %w", paymentErr)
 	}
@@ -77,7 +81,7 @@ func ProcessPaymentForOrder(ctx context.Context, app *appcontext.Context, order 
 
 	var paymentResponse *payments.ProcessPaymentResponse
 	paymentResponse, paymentErr = app.Integrations.Payments.ProcessPaymentWithSavedMethod(
-		internalUserID,
+		paymentUserID,
 		orderTotal,
 		fmt.Sprintf("Pago por pedido %s", order.ID),
 		order.ID,
@@ -95,7 +99,7 @@ func ProcessPaymentForOrder(ctx context.Context, app *appcontext.Context, order 
 	description := fmt.Sprintf("Pago por pedido %s", order.ID)
 	transaction := &domain.Transaction{
 		OrderID:          order.ID,
-		UserID:           internalUserID,
+		UserID:           paymentUserID,
 		ProfileID:        order.ProfileID,
 		Amount:           orderTotal,
 		Currency:         "ARS",
