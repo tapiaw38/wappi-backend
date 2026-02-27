@@ -45,6 +45,13 @@ func (u *handlePaymentWebhookUsecase) Execute(ctx context.Context, resourceID st
 		return nil
 	}
 
+	// Checkout Pro webhooks (merchant_order) must be queried with the Checkout Pro token
+	// because MP requires caller_id == collector_id of the preference creator.
+	checkoutProToken := app.ConfigService.MPCheckoutProAccessToken
+	if checkoutProToken == "" {
+		checkoutProToken = mpAccessToken
+	}
+
 	type paymentInfo struct {
 		orderID     string
 		amount      float64
@@ -63,7 +70,7 @@ func (u *handlePaymentWebhookUsecase) Execute(ctx context.Context, resourceID st
 		info = paymentInfo{orderID: pi.orderID, amount: pi.amount, mpPaymentID: resourceID}
 
 	case "merchant_order":
-		pi, err := u.getMerchantOrderInfo(resourceID, mpAccessToken)
+		pi, err := u.getMerchantOrderInfo(resourceID, checkoutProToken)
 		if err != nil {
 			log.Printf("Webhook: error getting merchant_order %s: %v", resourceID, err)
 			return nil

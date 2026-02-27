@@ -44,6 +44,11 @@ type Admin struct {
 	ListOrdersUsecase       admin.ListOrdersUsecase
 	ListTransactionsUsecase admin.ListTransactionsUsecase
 	UpdateOrderUsecase      admin.UpdateOrderUsecase
+	UploadImport            admin.UploadImportUsecase
+	ListImports             admin.ListImportsUsecase
+	UpdateImport            admin.UpdateImportUsecase
+	DeleteImport            admin.DeleteImportUsecase
+	ClearImports            admin.ClearImportsUsecase
 }
 
 type Settings struct {
@@ -90,6 +95,11 @@ func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
 			ListOrdersUsecase:       admin.NewListOrdersUsecase(contextFactory),
 			ListTransactionsUsecase: admin.NewListTransactionsUsecase(contextFactory),
 			UpdateOrderUsecase:      admin.NewUpdateOrderUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
+			UploadImport:            admin.NewUploadImportUsecase(contextFactory),
+			ListImports:             admin.NewListImportsUsecase(contextFactory),
+			UpdateImport:            admin.NewUpdateImportUsecase(contextFactory),
+			DeleteImport:            admin.NewDeleteImportUsecase(contextFactory),
+			ClearImports:            admin.NewClearImportsUsecase(contextFactory),
 		},
 		Settings: settingsUsecases,
 	}

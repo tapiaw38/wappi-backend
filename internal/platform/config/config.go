@@ -17,7 +17,8 @@ type ConfigurationService struct {
 	PaymentServiceURL       string
 	PaymentAPIKey           string
 	AuthAPIURL              string
-	MPAccessToken string
+	MPAccessToken            string
+	MPCheckoutProAccessToken string
 }
 
 var instance *ConfigurationService
@@ -28,16 +29,17 @@ func GetInstance() *ConfigurationService {
 		_ = godotenv.Load()
 
 		instance = &ConfigurationService{
-			ServerPort:       getEnvOrDefault("SERVER_PORT", "8080"),
-			DatabaseURL:      getEnvOrDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/yego?sslmode=disable"),
-			GinMode:          getEnvOrDefault("GIN_MODE", "debug"),
-			FrontendURL:         getEnvOrDefault("FRONTEND_URL", "http://localhost:5173"),
-			BackendURL:          getEnvOrDefault("BACKEND_URL", ""),
-			JWTSecret:           getEnvOrDefault("JWT_SECRET", ""),
-			PaymentServiceURL:   getEnvOrDefault("PAYMENT_SERVICE_URL", "http://localhost:8008"),
-			PaymentAPIKey:       getEnvOrDefault("PAYMENT_API_KEY", ""),
-			AuthAPIURL:          getEnvOrDefault("AUTH_API_URL", "http://localhost:8082"),
-			MPAccessToken: getEnvOrDefault("MP_ACCESS_TOKEN", ""),
+			ServerPort:               getEnvOrDefault("SERVER_PORT", "8080"),
+			DatabaseURL:              getEnvOrDefault("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/yego?sslmode=disable"),
+			GinMode:                  getEnvOrDefault("GIN_MODE", "debug"),
+			FrontendURL:              getEnvOrDefault("FRONTEND_URL", "http://localhost:5173"),
+			BackendURL:               getEnvOrDefault("BACKEND_URL", ""),
+			JWTSecret:                getEnvOrDefault("JWT_SECRET", ""),
+			PaymentServiceURL:        getEnvOrDefault("PAYMENT_SERVICE_URL", "http://localhost:8008"),
+			PaymentAPIKey:            getEnvOrDefault("PAYMENT_API_KEY", ""),
+			AuthAPIURL:               getEnvOrDefault("AUTH_API_URL", "http://localhost:8082"),
+			MPAccessToken:            getEnvOrDefault("MP_ACCESS_TOKEN", ""),
+			MPCheckoutProAccessToken: getEnvOrDefault("MP_CHECKOUT_PRO_ACCESS_TOKEN", ""),
 		}
 	}
 	return instance

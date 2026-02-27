@@ -11,6 +11,11 @@ type Usecases struct {
 	ListOrders       ListOrdersUsecase
 	ListTransactions ListTransactionsUsecase
 	UpdateOrder      UpdateOrderUsecase
+	UploadImport     UploadImportUsecase
+	ListImports      ListImportsUsecase
+	UpdateImport     UpdateImportUsecase
+	DeleteImport     DeleteImportUsecase
+	ClearImports     ClearImportsUsecase
 }
 
 // NewUsecases creates all admin use cases
@@ -20,5 +25,10 @@ func NewUsecases(contextFactory appcontext.Factory, calculateDeliveryFeeUse sett
 		ListOrders:       NewListOrdersUsecase(contextFactory),
 		ListTransactions: NewListTransactionsUsecase(contextFactory),
 		UpdateOrder:      NewUpdateOrderUsecase(contextFactory, calculateDeliveryFeeUse),
+		UploadImport:     NewUploadImportUsecase(contextFactory),
+		ListImports:      NewListImportsUsecase(contextFactory),
+		UpdateImport:     NewUpdateImportUsecase(contextFactory),
+		DeleteImport:     NewDeleteImportUsecase(contextFactory),
+		ClearImports:     NewClearImportsUsecase(contextFactory),
 	}
 }
