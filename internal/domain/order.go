@@ -43,6 +43,7 @@ func IsValidStatus(s string) bool {
 
 // OrderItem represents a single item in an order
 type OrderItem struct {
+	Code     string  `json:"code,omitempty"` // product code, optional
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`

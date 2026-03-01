@@ -13,6 +13,7 @@ type Usecases struct {
 	UpdateOrder      UpdateOrderUsecase
 	UploadImport     UploadImportUsecase
 	ListImports      ListImportsUsecase
+	CreateImport     CreateImportUsecase
 	UpdateImport     UpdateImportUsecase
 	DeleteImport     DeleteImportUsecase
 	ClearImports     ClearImportsUsecase
@@ -27,6 +28,7 @@ func NewUsecases(contextFactory appcontext.Factory, calculateDeliveryFeeUse sett
 		UpdateOrder:      NewUpdateOrderUsecase(contextFactory, calculateDeliveryFeeUse),
 		UploadImport:     NewUploadImportUsecase(contextFactory),
 		ListImports:      NewListImportsUsecase(contextFactory),
+		CreateImport:     NewCreateImportUsecase(contextFactory),
 		UpdateImport:     NewUpdateImportUsecase(contextFactory),
 		DeleteImport:     NewDeleteImportUsecase(contextFactory),
 		ClearImports:     NewClearImportsUsecase(contextFactory),

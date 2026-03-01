@@ -11,6 +11,7 @@ import (
 
 // CreateWithLinkItemInput represents a single item in the order
 type CreateWithLinkItemInput struct {
+	Code     string  `json:"code,omitempty"`
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`
@@ -68,6 +69,7 @@ func (u *createWithLinkUsecase) Execute(ctx context.Context, input CreateWithLin
 		items := make([]domain.OrderItem, len(input.Data.Items))
 		for i, item := range input.Data.Items {
 			items[i] = domain.OrderItem{
+				Code:     item.Code,
 				Name:     item.Name,
 				Price:    item.Price,
 				Quantity: item.Quantity,

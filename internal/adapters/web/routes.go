@@ -75,6 +75,7 @@ func RegisterRoutes(app *gin.Engine, useCases *usecases.Usecases, wsHandler *web
 		admin.PUT("/orders/:id", adminHandler.NewUpdateOrderHandler(useCases.Admin.UpdateOrderUsecase))
 		admin.POST("/import", adminHandler.NewUploadImportHandler(useCases.Admin.UploadImport))
 		admin.GET("/imports", adminHandler.NewListImportsHandler(useCases.Admin.ListImports))
+		admin.POST("/imports", adminHandler.NewCreateImportHandler(useCases.Admin.CreateImport))
 		admin.PUT("/imports/:id", adminHandler.NewUpdateImportHandler(useCases.Admin.UpdateImport))
 		admin.DELETE("/imports/:id", adminHandler.NewDeleteImportHandler(useCases.Admin.DeleteImport))
 		admin.DELETE("/imports", adminHandler.NewClearImportsHandler(useCases.Admin.ClearImports))

@@ -46,6 +46,7 @@ type Admin struct {
 	UpdateOrderUsecase      admin.UpdateOrderUsecase
 	UploadImport            admin.UploadImportUsecase
 	ListImports             admin.ListImportsUsecase
+	CreateImport            admin.CreateImportUsecase
 	UpdateImport            admin.UpdateImportUsecase
 	DeleteImport            admin.DeleteImportUsecase
 	ClearImports            admin.ClearImportsUsecase
@@ -97,6 +98,7 @@ func CreateUsecases(contextFactory appcontext.Factory) *Usecases {
 			UpdateOrderUsecase:      admin.NewUpdateOrderUsecase(contextFactory, settingsUsecases.CalculateDeliveryFeeUsecase),
 			UploadImport:            admin.NewUploadImportUsecase(contextFactory),
 			ListImports:             admin.NewListImportsUsecase(contextFactory),
+			CreateImport:            admin.NewCreateImportUsecase(contextFactory),
 			UpdateImport:            admin.NewUpdateImportUsecase(contextFactory),
 			DeleteImport:            admin.NewDeleteImportUsecase(contextFactory),
 			ClearImports:            admin.NewClearImportsUsecase(contextFactory),

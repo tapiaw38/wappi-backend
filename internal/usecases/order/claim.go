@@ -3,6 +3,7 @@ package order
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"yego/internal/platform/appcontext"
@@ -112,6 +113,26 @@ func (u *claimUsecase) Execute(ctx context.Context, input ClaimInput) (*ClaimOut
 	updatedOrder, err := app.Repositories.Order.GetByID(ctx, orderToken.OrderID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Validate and correct item prices against import records
+	log.Printf("[Claim] order %s has data=%v items_count=%d", updatedOrder.ID, updatedOrder.Data != nil, func() int {
+		if updatedOrder.Data != nil {
+			return len(updatedOrder.Data.Items)
+		}
+		return 0
+	}())
+	if updatedOrder.Data != nil && len(updatedOrder.Data.Items) > 0 {
+		importRecords, importErr := app.Repositories.ImportRecord.GetAll(ctx)
+		log.Printf("[Claim] import records fetched: count=%d err=%v", len(importRecords), importErr)
+		if importErr == nil && len(importRecords) > 0 {
+			corrected, hasChanges := correctItemPrices(updatedOrder.Data.Items, importRecords)
+			if hasChanges {
+				log.Printf("[Claim] applying price corrections to order %s", updatedOrder.ID)
+				updatedOrder.Data.Items = corrected
+				_, _ = app.Repositories.Order.Update(ctx, updatedOrder)
+			}
+		}
 	}
 
 	// Send notification to managers

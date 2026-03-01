@@ -11,6 +11,7 @@ import (
 )
 
 type CreateWithLinkItemInput struct {
+	Code     string  `json:"code,omitempty"`
 	Name     string  `json:"name"`
 	Price    float64 `json:"price"`
 	Quantity int     `json:"quantity"`
@@ -49,6 +50,7 @@ func NewCreateWithLinkHandler(usecase orderUsecase.CreateWithLinkUsecase, fronte
 			items := make([]orderUsecase.CreateWithLinkItemInput, len(input.Data.Items))
 			for i, item := range input.Data.Items {
 				items[i] = orderUsecase.CreateWithLinkItemInput{
+					Code:     item.Code,
 					Name:     item.Name,
 					Price:    item.Price,
 					Quantity: item.Quantity,
